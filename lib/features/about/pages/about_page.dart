@@ -150,7 +150,7 @@ class AboutPage extends StatelessWidget {
                           title: "Repositório no GitHub",
                           subtitle: "Ver código fonte ou reportar bugs",
                           onTap: () => _launchUrl(
-                            'https://github.com/LeonanC/fuel-tracker-app',
+                            'https://github.com/LeonanC/fuel-tracker',
                           ),
                           theme: theme,
                         ),
@@ -170,7 +170,7 @@ class AboutPage extends StatelessWidget {
                           icon: RemixIcons.shield_user_line,
                           title: "ab_privacyPolicy".tr,
                           onTap: () =>
-                              _launchUrl('https://github.com/LeonanC/fuel-tracker-app/blob/main/privacy.md'),
+                              _launchUrl('https://github.com/LeonanC/fuel-tracker/blob/main/privacy.md'),
                           theme: theme,
                         ),
                       ],
