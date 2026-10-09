@@ -1,0 +1,91 @@
+<<<<<<< HEAD
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+=======
+# Cache e arquivos de compilação do Flutter
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+# Google Secrets
+android/app/*.json
+
+# Firebase (Arquivos gerados automaticamente)
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Configurações do Android
+.gradle/
+local.properties
+*.kwks
+*.keystore
+*.jks
+project.properties
+
+# Configurações do iOS
+.generated/
+Pods/
+DerivedData/
+Runner.xcworkspace
+!default.mode1v3
+!default.pbxuser
+!default.perspectivev3
+xcuserdata/
+
+# Chaves e Segredos (MUITO IMPORTANTE)
+# Se você tiver chaves de API em arquivos .env, ignore-os aqui
+.env*
+google-services.json
+GoogleService-Info.plist
+
+# IDEs (VS Code, IntelliJ, etc)
+.vscode/
+.idea/
+*.iml
+>>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
