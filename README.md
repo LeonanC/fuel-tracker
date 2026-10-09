@@ -44,4 +44,3 @@ lib/
 ├── core/          # Lógica compartilhada e utilitários
 ├── data/          # Repositórios e fontes de dados (Supabase)
 ├── features/        # Telas (UI) e Gerenciamento de Estado
->>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
