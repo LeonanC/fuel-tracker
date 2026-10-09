@@ -39,6 +39,7 @@ Este projeto faz parte do meu ecossistema de soluções de logística e mobilida
 *   **Interface Intuitiva:** UI desenhada para facilitar o uso rápido em postos de combustível.
 
 ## 🏗️ Estrutura de Pastas
+```text
 lib/
 ├── core/          # Lógica compartilhada e utilitários
 ├── data/          # Repositórios e fontes de dados (Supabase)
