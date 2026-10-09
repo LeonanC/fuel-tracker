@@ -1,5 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-<<<<<<< HEAD
 
     <queries>
         <intent>
@@ -7,9 +6,7 @@
             <data android:mimeType="application/vnd.android.package-archive" />
         </intent>
     </queries>
-    
-=======
->>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -25,16 +22,13 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-<<<<<<< HEAD
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
-=======
->>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
+
     <application
         android:label="Fuel Tracker"
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"
         android:requestLegacyExternalStorage="true"
-<<<<<<< HEAD
         android:icon="@mipmap/launcher_icon">
 
         <provider
@@ -46,9 +40,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepaths" />
         </provider>
-=======
-        android:icon="@mipmap/ic_launcher">
->>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
 
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
             <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
@@ -58,10 +49,7 @@
                     <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 </intent-filter>
             </receiver>
-<<<<<<< HEAD
 
-=======
->>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -83,25 +71,18 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-<<<<<<< HEAD
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="br.com.fuel.tracker" android:host="reset-callback" />
             </intent-filter>
-=======
->>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-<<<<<<< HEAD
                 <data android:scheme="br.com.fuel.tracker" android:host="login-callback" />
-=======
-                <data android:scheme="br.com.fuel.tracker.app" android:host="login-callback" />
->>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
@@ -110,16 +91,7 @@
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
-<<<<<<< HEAD
    <queries>
-=======
-    <!-- Required to query activities that can process text, see:
-         https://developer.android.com/training/package-visibility and
-         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
-
-         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
-    <queries>
->>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
