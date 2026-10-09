@@ -18,6 +18,8 @@ Future<void> main() async {
   await SupabaseConfig.initialize();
 
   setupServiceLocator();
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

@@ -1,4 +1,6 @@
 import 'package:fuel_tracker/features/about/pages/about_page.dart';
+import 'package:fuel_tracker/features/auth/pages/forgot_password.dart';
+import 'package:fuel_tracker/features/auth/pages/reset_password.dart';
 import 'package:fuel_tracker/features/auth/pages/sign_in.dart';
 import 'package:fuel_tracker/features/auth/pages/sign_up.dart';
 import 'package:fuel_tracker/features/backup/pages/backup_page.dart';
@@ -65,6 +67,14 @@ abstract class  AppPages {
       page: () => BackupPage(),
       name: PagesRoutes.backupRoute,
     ),
+    GetPage(
+      page: () => ForgotPassword(),
+      name: PagesRoutes.passwordRoute,
+    ),
+    GetPage(
+      page: () => ResetPassword(),
+      name: PagesRoutes.resetPasswordRoute,
+    ),
   ];
 }
 
@@ -79,6 +89,8 @@ abstract class PagesRoutes {
   static const splashRoute = '/splash';
   static const signInRoute = '/signIn';
   static const signUpRoute = '/signUp';  
+  static const passwordRoute = '/forgot_password';  
+  static const resetPasswordRoute = '/reset_password';  
   static const fuelRoute = '/fuel';
   static const aboutRoute = '/about';
 }

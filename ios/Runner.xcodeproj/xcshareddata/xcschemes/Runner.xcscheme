@@ -5,7 +5,6 @@
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
-<<<<<<< HEAD
       <PreActions>
          <ExecutionAction
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
@@ -24,8 +23,6 @@
             </ActionContent>
          </ExecutionAction>
       </PreActions>
-=======
->>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"

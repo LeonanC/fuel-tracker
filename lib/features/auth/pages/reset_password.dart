@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fuel_tracker/core/services/utils_service.dart';
 import 'package:fuel_tracker/core/services/validator.dart';
 import 'package:fuel_tracker/features/auth/controllers/auth_controller.dart';
 import 'package:fuel_tracker/features/widgets/app_name_widget.dart';
@@ -9,13 +8,13 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:remixicon/remixicon.dart';
 
-class ForgotPassword extends GetView<AuthController> {
-  ForgotPassword({super.key});
+class ResetPassword extends GetView<AuthController> {
+  ResetPassword({super.key});
 
   final _formKey = GlobalKey<FormState>();
-  final _authController = Get.find<AuthController>();
-  final emailController = TextEditingController();
-  final _utilsServices = UtilsService();
+  final authController = Get.find<AuthController>();
+  final newPasswordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -38,20 +37,9 @@ class ForgotPassword extends GetView<AuthController> {
                     ),
                     SizedBox(height: 15.h),
                     Icon(
-                      RemixIcons.mail_line,
+                      RemixIcons.lock_password_line,
                       size: 70.sp,
                       color: theme.colorScheme.primary,
-                    ),
-                    SizedBox(height: 15.h),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 40.w),
-                      child: Text(
-                        'Insira o seu e-mail cadastrado para receber as instruções de recuperação de senha.',
-                        style: GoogleFonts.lexend(
-                          fontSize: 14.sp,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
                     ),
                   ],
                 ),
@@ -66,21 +54,53 @@ class ForgotPassword extends GetView<AuthController> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Text(
+                        'lg_nova_senha'.tr,
+                        style: GoogleFonts.lexend(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        'lg_instrucao_nova_senha'.tr,
+                        style: GoogleFonts.lexend(
+                          fontSize: 13.sp,
+                          color: theme.colorScheme.secondary,
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
                       CustomTextField(
-                        controller: emailController,
-                        icon: RemixIcons.mail_line,
-                        label: 'E-mail',
-                        validator: emailValidator,
+                        controller: newPasswordController,
+                        icon: RemixIcons.lock_line,
+                        isSecret: true,
+                        label: 'lg_nova_senha'.tr,
+                        validator: passwordValidator,
+                      ),
+                      CustomTextField(
+                        controller: confirmPasswordController,
+                        icon: RemixIcons.lock_line,
+                        isSecret: true,
+                        label: 'lg_confirmar_nova_senha'.tr,
+                        validator: (val){
+                          final passwordError = passwordValidator(val);
+                          if(passwordError != null) return passwordError;
+                          if(val != newPasswordController.text){
+                            return 'lg_senhas_nao_coincidem'.tr;
+                          }
+                          return null;
+                        },
                       ),
                       SizedBox(height: 20.h),
                       SizedBox(
                         child: Obx(() => ElevatedButton(
                           onPressed: () async {
+                            FocusScope.of(context).unfocus();
                             if(_formKey.currentState!.validate()){
-                              FocusScope.of(context).unfocus();
-                              Get.back();
-                              _authController.sendPasswordResetEmail(emailController.text);
-                              _utilsServices.showToast(message: 'E-mail enviado, Verifique a sua caixa de entrada para redefinir a senha.');
+                              authController.updateNewPassword(
+                                newPasswordController.text.trim(),
+                              );                            
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -96,7 +116,7 @@ class ForgotPassword extends GetView<AuthController> {
                             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                           )
                           : Text(
-                            'Enviar Instruções',
+                            'lg_salvar_nova_senha'.tr,
                             style: GoogleFonts.lexend(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,

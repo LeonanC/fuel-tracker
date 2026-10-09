@@ -27,11 +27,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1280, 720);
-<<<<<<< HEAD
   if (!window.Create(L"fuel_tracker", origin, size)) {
-=======
-  if (!window.Create(L"fuel_tracker_app", origin, size)) {
->>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);

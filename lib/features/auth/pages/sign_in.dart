@@ -125,7 +125,7 @@ class SignInPage extends GetView<AuthController> {
                       ),
                       SizedBox(height: 20.h),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () => Get.toNamed(PagesRoutes.passwordRoute),
                         child: Text(
                           'Esqueci a senha',
                           style: TextStyle(

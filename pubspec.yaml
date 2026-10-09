@@ -4,7 +4,7 @@ description: "Aplicativo completo e intuitivo para o gerenciamento de
 
 publish_to: 'none'
 
-version: 11.4.7
+version: 11.4.8
 
 environment:
   sdk: ^3.12.2

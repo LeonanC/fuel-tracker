@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fuel_tracker/core/models/user_model.dart';
 import 'package:fuel_tracker/core/models/vehicle_model.dart';
+import 'package:fuel_tracker/core/network/app_router.dart';
 import 'package:fuel_tracker/core/services/utils_service.dart';
 import 'package:fuel_tracker/features/vehicles/controllers/vehicle_controller.dart';
 import 'package:get/get.dart';
@@ -31,6 +32,11 @@ class AuthController extends GetxController {
 
     _supabase.auth.onAuthStateChange.listen((data) {
       _updateUser(data.session?.user);
+
+      final AuthChangeEvent event = data.event;
+      if (event == AuthChangeEvent.passwordRecovery) {
+        Get.toNamed(PagesRoutes.resetPasswordRoute);
+      }
     });
   }
 
@@ -74,9 +80,12 @@ class AuthController extends GetxController {
       if (user == null) {
         throw Exception("Não foi possível criar o utilizador.");
       }
-      
+
       if (_supabase.auth.currentSession == null) {
-        await _supabase.auth.signInWithPassword(email: email, password: password);
+        await _supabase.auth.signInWithPassword(
+          email: email,
+          password: password,
+        );
       }
 
       String? fotoUrl;
@@ -99,7 +108,7 @@ class AuthController extends GetxController {
             'nome': name,
             'telefone': phone,
             if (fotoUrl != null) 'foto_url': fotoUrl,
-            if(vehicleId != null) 'fk_vehicle': vehicleId,
+            if (vehicleId != null) 'fk_vehicle': vehicleId,
             'criado_em': DateTime.now().toIso8601String(),
             'xp': 0,
             'is_special_user': false,
@@ -129,10 +138,10 @@ class AuthController extends GetxController {
         password: password,
       );
 
-      if(response.user != null){
+      if (response.user != null) {
         _updateUser(response.user);
       }
-      
+
       return response.user != null;
     } on AuthException catch (e) {
       _utilsService.showToast(message: "Erro no Login: '${e.message}");
@@ -151,6 +160,36 @@ class AuthController extends GetxController {
       await _supabase.auth.signOut();
     } catch (e) {
       _utilsService.showToast(message: 'Não foi possível encerrar a sessão.');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> updateNewPassword(String newPassword) async {
+    if (newPassword.trim().length < 6) {
+      _utilsService.showToast(
+        message: 'A nova senha deve ter no mínimo 6 caracteres.',
+        isError: true,
+      );
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      await _supabase.auth.updateUser(UserAttributes(password: newPassword));
+
+      _utilsService.showToast(
+        message: 'Senha atualizado com sucesso! Faça login novamente.',
+      );
+
+      Get.offAllNamed(PagesRoutes.signInRoute);
+    } on AuthException catch (e) {
+      _utilsService.showToast(message: e.message, isError: true);
+    } catch (e) {
+      _utilsService.showToast(
+        message: 'Erro ao atualizar senha: $e',
+        isError: true,
+      );
     } finally {
       isLoading.value = false;
     }

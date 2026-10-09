@@ -3,22 +3,15 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  app_links_linux
   file_selector_linux
-<<<<<<< HEAD
   flutter_secure_storage_linux
-  gtk
   printing
-=======
-  gtk
->>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
   url_launcher_linux
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
-<<<<<<< HEAD
   jni
-=======
->>>>>>> 03b2b30e5e7d1cb189ce9a40f4069407d600b62f
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)
