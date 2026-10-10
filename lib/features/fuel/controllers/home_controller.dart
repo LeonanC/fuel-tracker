@@ -8,9 +8,11 @@ import 'package:fuel_tracker/core/models/vehicle_model.dart';
 import 'package:fuel_tracker/core/network/app_router.dart';
 import 'package:fuel_tracker/core/services/utils_service.dart';
 import 'package:fuel_tracker/features/fuel/services/home_service.dart';
+import 'package:fuel_tracker/features/fuel/services/offline_sync_service.dart';
 import 'package:get/get.dart';
 
 class HomeController extends GetxController {
+  final OfflineSyncService _offlineSyncService = Get.find<OfflineSyncService>();
   final HomeService _homeService = HomeService();
   final _utilsService = UtilsService();
 
@@ -75,7 +77,9 @@ class HomeController extends GetxController {
     try {
       isLoading.value = true;
       final data = await _homeService.fetchStaticData();
-      _applyDataToState(data!);
+      if (data != null) {
+        _applyDataToState(data);
+      }
       isOfflineMode.value = false;
     } catch (e) {
       isOfflineMode.value = true;
@@ -87,54 +91,66 @@ class HomeController extends GetxController {
 
   void initFuelStream() {
     _fuelStreamSubscription?.cancel();
-    final stream = _homeService.getFuelStream();
-    if (stream == null) return;
 
-    _fuelStreamSubscription = stream.listen(
-      (snapshot) {
-        fuelEntries.value = snapshot.map((f) => FuelModel.fromJson(f)).toList();
-        _homeService.saveLocalCache('fuelings', snapshot);
-        isOfflineMode.value = false;
-      },
-      onError: (error) {
-        isOfflineMode.value = true;
-      },
-    );
+    try {
+      final stream = _homeService.getFuelStream();
+      if (stream == null) return;
+
+      _fuelStreamSubscription = stream.listen(
+        (snapshot) {
+          fuelEntries.value = snapshot
+              .map((f) => FuelModel.fromJson(f))
+              .toList();
+          _homeService.saveLocalCache('fuelings', snapshot);
+          isOfflineMode.value = false;
+        },
+        onError: (error) {
+          isOfflineMode.value = true;
+        },
+      );
+    } catch (e) {
+      isOfflineMode.value = true;
+    }
   }
 
-  Future<void> saveFuel(Map<String, dynamic> data) async {
+  Future<bool> saveFuel(Map<String, dynamic> data) async {
     try {
       isLoading.value = true;
       final newFuel = FuelModel.fromJson(data);
       fuelEntries.insert(0, newFuel);
       _persistFuelEntriesLocally();
 
-      bool successOnline = await _homeService.saveFuel(data);
-      if (successOnline) {
-        _utilsService.showToast(message: 'Abastecimento registrado!');
-      } else {
+      bool success = await _offlineSyncService.saveOrQueueFuelEntry(
+        entry: newFuel,
+        onlineSaveCallback: (entry) async {
+          return await _homeService.saveFuel(data);
+        },
+      );
+
+      if (success) {
         _utilsService.showToast(
-          message: 'O registro será enviado ao reconectar.',
-          isError: true,
+          message: 'Abastecimento registrado com sucesso!',
         );
       }
+      return success;
     } catch (e) {
       _utilsService.showToast(
         message: 'Falha ao processar registro.',
         isError: true,
       );
+      return false;
     } finally {
       isLoading.value = false;
     }
   }
-  
+
   Future<void> updateFuel(FuelModel data) async {
     try {
-      if(data.id == null) return;
+      if (data.id == null) return;
       isLoading.value = true;
 
       int index = fuelEntries.indexWhere((e) => e.id == data.id);
-      if(index != -1){
+      if (index != -1) {
         fuelEntries[index] = data;
         fuelEntries.refresh();
         _persistFuelEntriesLocally();
@@ -158,12 +174,12 @@ class HomeController extends GetxController {
       isLoading.value = false;
     }
   }
-  
+
   Future<void> deleteFuel(String id) async {
     try {
       fuelEntries.removeWhere((element) => element.id == id);
       _persistFuelEntriesLocally();
-      
+
       bool successOnline = await _homeService.deleteFuel(id);
       if (successOnline) {
         _utilsService.showToast(message: 'Abastecimento removido!');
@@ -191,7 +207,8 @@ class HomeController extends GetxController {
   List<FuelModel> get filteredFuelEntries {
     List<FuelModel> list = fuelEntries;
 
-    if (selectedVehicleId.value != null && selectedVehicleId.value!.isNotEmpty) {
+    if (selectedVehicleId.value != null &&
+        selectedVehicleId.value!.isNotEmpty) {
       list = list.where((e) => e.vehicleId == selectedVehicleId.value).toList();
     }
     if (selectedTipoId.value != null && selectedTipoId.value!.isNotEmpty) {
@@ -210,7 +227,7 @@ class HomeController extends GetxController {
         final veiculo = dadosVeiculo?['name']?.toString().toLowerCase() ?? '';
 
         final dadosPosto = postosMap[e.gasStationId];
-        final posto = dadosPosto?['nome']?.toString().toLowerCase() ?? '';        
+        final posto = dadosPosto?['nome']?.toString().toLowerCase() ?? '';
 
         final dadosTipo = tiposMap[e.fuelTypeId];
         final tipo = dadosTipo?['nome']?.toString().toLowerCase() ?? '';
@@ -233,18 +250,18 @@ class HomeController extends GetxController {
       PagesRoutes.fuelRoute,
       arguments: {'lastOdometer': odometerAnterior},
     );
-    if(result == true){
+    if (result == true) {
       fetchData();
       _utilsService.showToast(message: "Abastecimento registrado!");
     }
   }
-  
+
   void navigateToEditEntry(BuildContext context, FuelModel entry) async {
     final result = await Get.toNamed(
       PagesRoutes.fuelRoute,
       arguments: {'lastOdometer': odometerAnterior, 'entry': entry},
     );
-    if(result == true){
+    if (result == true) {
       fetchData();
       _utilsService.showToast(message: "Abastecimento atualizado!");
     }
@@ -252,74 +269,58 @@ class HomeController extends GetxController {
 
   double get odometerAnterior {
     final entries = filteredFuelEntries;
-    if(entries.length >= 2){
+    if (entries.length >= 2) {
       return entries[1].odometerKm;
     }
 
-    final veiculo = veiculos.firstWhereOrNull((v) => v.id == selectedVehicleId.value);
-    return veiculo?.odometer ?? 0.0;
-  }
-
-  double get totalLitrosAbastecidos {
-    return filteredFuelEntries.fold(
-      0.0,
-      (sum, item) => sum + item.volumeLiters!,
+    final veiculo = veiculos.firstWhereOrNull(
+      (v) => v.id == selectedVehicleId.value,
     );
-  }
-
-  double get precoMedioPorLitro {
-    final entries = filteredFuelEntries;
-    if (entries.length < 2) return 0.0;
-
-    double totalGasto = 0.0;
-    double totalLitros = 0.0;
-
-    for (var entry in entries) {
-      totalGasto += entry.totalCost ?? 0.0;
-      totalLitros += entry.volumeLiters ?? 0.0;
-    }
-
-    if (totalLitros <= 0) return 0.0;
-
-    return totalGasto / totalLitros;
+    return veiculo?.odometer ?? 0.0;
   }
 
   double get mediaConsumoGeral {
     final entries = filteredFuelEntries;
     if (entries.length < 2) return 0.0;
 
-    final ultimoAbastecimento = entries.first;
-    final abastecimentoAnterior = entries[1];
+    final sortedEntries = List<FuelModel>.from(entries)
+      ..sort((a, b) => (a.odometerKm).compareTo(b.odometerKm));
 
-    double kmRodadoNoTrajeto =
-        ultimoAbastecimento.odometerKm! - abastecimentoAnterior.odometerKm!;
-    if (kmRodadoNoTrajeto <= 0) return 0.0;
+    double kmTotalRodado =
+        (sortedEntries.last.odometerKm) - (sortedEntries.first.odometerKm);
+    if (kmTotalRodado <= 0) return 0.0;
 
-    double litrosTotaisConsumidos = 0.0;
-    for (int i = 0; i < entries.length - 1; i++) {
-      litrosTotaisConsumidos += entries[i].volumeLiters ?? 0.0;
+    double litrosTotais = 0.0;
+    for (int i = 0; i < sortedEntries.length - 1; i++) {
+      litrosTotais += sortedEntries[i].volumeLiters;
     }
 
-    if (litrosTotaisConsumidos <= 0) return 0.0;
+    if (litrosTotais <= 0) return 0.0;
 
-    return kmRodadoNoTrajeto / litrosTotaisConsumidos;
+    return kmTotalRodado / litrosTotais;
   }
 
-  double get gastoMensal {
-    final now = DateTime.now();
+  double get custoPorKm {
+    final entries = filteredFuelEntries;
+    if (entries.length < 2) return 0.0;
 
-    return filteredFuelEntries
-        .where(
-          (entry) =>
-              entry.entryDate != null &&
-              entry.entryDate!.month == now.month &&
-              entry.entryDate!.year == now.year,
-        )
-        .fold(0.0, (sum, entry) => sum + (entry.totalCost ?? 0.0));
+    final sortedEntries = List<FuelModel>.from(entries)
+      ..sort((a, b) => (a.odometerKm).compareTo(b.odometerKm));
+
+    double kmTotalRodado = (sortedEntries.last.odometerKm) - (sortedEntries.first.odometerKm);
+    if(kmTotalRodado <= 0) return 0.0;
+
+    double custoTotal = 0.0;
+    for(int i = 1; i < sortedEntries.length; i++){
+      custoTotal += sortedEntries[i].totalCost;
+    }
+    if(custoTotal <= 0) return 0.0;
+    
+    return custoTotal / kmTotalRodado;
   }
 
   @override
-  void onClose(){
+  void onClose() {
     _fuelStreamSubscription?.cancel();
     super.onClose();
   }

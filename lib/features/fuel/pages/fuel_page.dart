@@ -17,21 +17,21 @@ class FuelPage extends GetView<AddController> {
 
   void _handleSaveAndNotify() async {
     await controller.submit();
-    if(notifController.refuelReminders.value){
+    if (notifController.refuelReminders.value) {
       notifController.showNotification(
         id: 101,
         title: 'hp_notify_title_success'.tr,
         body: syncService.isOnline.value
-        ? 'hp_notify_body_online'.tr
-        : 'hp_notify_body_offline'.tr,
+            ? 'hp_notify_body_online'.tr
+            : 'hp_notify_body_offline'.tr,
       );
     }
 
-    if(notifController.oilChangeAlerts.value){
+    if (notifController.oilChangeAlerts.value) {
       final kmStr = controller.kmController.text;
-      if(kmStr.isNotEmpty){
+      if (kmStr.isNotEmpty) {
         final double? km = double.tryParse(kmStr);
-        if(km != null && km > 10000){
+        if (km != null && km > 10000) {
           notifController.showNotification(
             id: 103,
             title: 'hp_notify_title_oil'.tr,
@@ -53,28 +53,31 @@ class FuelPage extends GetView<AddController> {
         final isOnline = syncService.isOnline.value;
         return SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 12.w),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
             child: ElevatedButton.icon(
               onPressed: (controller.isLoading.value || (!isOnline && isFull))
                   ? null
                   : _handleSaveAndNotify,
               style: ElevatedButton.styleFrom(
                 backgroundColor: !isOnline
-                    ? Colors.orange.shade800
+                    ? Colors.orange.shade700
                     : theme.colorScheme.primary,
-                foregroundColor: theme.colorScheme.secondary,
-                minimumSize: Size.fromHeight(52.h),
+                foregroundColor: theme.colorScheme.onPrimary,
+                minimumSize: Size.fromHeight(54.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16.r),
                 ),
-                elevation: 2,
+                elevation: 4,
+                shadowColor:
+                    (isOnline ? theme.colorScheme.primary : Colors.orange)
+                        .withOpacity(0.4),
               ),
               icon: controller.isLoading.value
                   ? SizedBox(
                       width: 20.w,
                       height: 20.h,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: theme.colorScheme.onPrimary,
                         strokeWidth: 2,
                       ),
                     )
@@ -82,7 +85,8 @@ class FuelPage extends GetView<AddController> {
                       !isOnline
                           ? RemixIcons.cloud_off_line
                           : RemixIcons.check_line,
-                      color: theme.colorScheme.secondary,
+                      color: theme.colorScheme.onPrimary,
+                      size: 20.sp,
                     ),
               label: Text(
                 !isOnline
@@ -96,8 +100,8 @@ class FuelPage extends GetView<AddController> {
                 style: GoogleFonts.lexend(
                   fontWeight: FontWeight.bold,
                   fontSize: 14.sp,
-                  color: Colors.white,
-                  letterSpacing: 1,
+                  color: theme.colorScheme.onPrimary,
+                  letterSpacing: 0.8,
                 ),
               ),
             ),
@@ -112,24 +116,26 @@ class FuelPage extends GetView<AddController> {
             _buildSliverAppBar(controller, theme),
             SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(16, 20, 16, 40),
+                padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 40.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildSectionTitle("hp_section_vehicle_location".tr, theme),
                     _buildCardContainer(
+                      theme,
                       child: _buildDropdowns(controller, theme),
                     ),
-                    SizedBox(height: 20.h),
+                    SizedBox(height: 24.h),
                     _buildSectionTitle(
                       "hp_section_measurement_values".tr,
                       theme,
                     ),
                     _buildCardContainer(
+                      theme,
                       child: _buildInputField(controller, theme),
                     ),
                     SizedBox(height: 24.h),
-                    _buildConnectionBanner(),
+                    _buildConnectionBanner(theme),
                   ],
                 ),
               ),
@@ -148,11 +154,14 @@ class FuelPage extends GetView<AddController> {
       stretch: true,
       backgroundColor: theme.appBarTheme.backgroundColor,
       leading: IconButton(
-        icon: Icon(RemixIcons.arrow_left_line),
+        icon: Icon(
+          RemixIcons.arrow_left_line,
+          color: theme.colorScheme.onSurface,
+        ),
         onPressed: () => Get.back(),
       ),
       flexibleSpace: FlexibleSpaceBar(
-        titlePadding: EdgeInsetsDirectional.only(start: 50, bottom: 16),
+        titlePadding: EdgeInsetsDirectional.only(start: 50.w, bottom: 16.h),
         centerTitle: false,
         title: Text(
           c.editingEntry != null ? "hp_title_edit".tr : "hp_title_add".tr,
@@ -168,26 +177,49 @@ class FuelPage extends GetView<AddController> {
 
   Widget _buildSectionTitle(String title, ThemeData theme) {
     return Padding(
-      padding: EdgeInsets.only(left: 8, bottom: 12),
-      child: Text(
-        title,
-        style: GoogleFonts.lexend(
-          fontSize: 11.sp,
-          fontWeight: FontWeight.w900,
-          color: theme.colorScheme.primary.withOpacity(0.8),
-          letterSpacing: 1.5,
-        ),
+      padding: EdgeInsets.fromLTRB(4.w, 8.h, 4.w, 12.h),
+      child: Row(
+        children: [
+          Container(
+            width: 3.w,
+            height: 14.h,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(2.r),
+            ),
+          ),
+          SizedBox(width: 8.w),
+          Text(
+            title.toUpperCase(),
+            style: GoogleFonts.lexend(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w900,
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              letterSpacing: 1.2,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildCardContainer({required Widget child}) {
+  Widget _buildCardContainer(ThemeData theme, {required Widget child}) {
     return Container(
-      padding: EdgeInsets.all(16.h),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
-        color: Color(0xFF1E1E1E),
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24.r),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(
+          color: theme.colorScheme.onSurface.withOpacity(0.06),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 15.r,
+            offset: Offset(0, 5.h),
+          ),
+        ],
       ),
       child: child,
     );
@@ -206,7 +238,13 @@ class FuelPage extends GetView<AddController> {
                 .map(
                   (v) => DropdownMenuItem(
                     value: '${v.id}',
-                    child: Text('${v.name}'),
+                    child: Text(
+                      '${v.name}',
+                      style: GoogleFonts.lexend(
+                        fontSize: 13.sp,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
                   ),
                 )
                 .toList(),
@@ -225,7 +263,13 @@ class FuelPage extends GetView<AddController> {
                 .map(
                   (v) => DropdownMenuItem(
                     value: '${v.id}',
-                    child: Text('${v.name}'),
+                    child: Text(
+                      '${v.name}',
+                      style: GoogleFonts.lexend(
+                        fontSize: 13.sp,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
                   ),
                 )
                 .toList(),
@@ -243,7 +287,13 @@ class FuelPage extends GetView<AddController> {
                 .map(
                   (v) => DropdownMenuItem(
                     value: '${v.id}',
-                    child: Text('${v.name}'),
+                    child: Text(
+                      '${v.name}',
+                      style: GoogleFonts.lexend(
+                        fontSize: 13.sp,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
                   ),
                 )
                 .toList(),
@@ -266,14 +316,53 @@ class FuelPage extends GetView<AddController> {
   }) {
     return DropdownButtonFormField<String>(
       value: value,
+      isExpanded: true,
+      dropdownColor: theme.colorScheme.surface,
+      icon: Icon(
+        RemixIcons.arrow_down_s_line,
+        size: 18.sp,
+        color: theme.colorScheme.onSurface.withOpacity(0.5),
+      ),
+      style: GoogleFonts.lexend(
+        fontSize: 13.sp,
+        color: theme.colorScheme.onSurface,
+        fontWeight: FontWeight.w500,
+      ),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: theme.colorScheme.secondary),
+        labelStyle: GoogleFonts.lexend(
+          fontSize: 12.sp,
+          color: theme.colorScheme.onSurface.withOpacity(0.5),
+        ),
+        floatingLabelStyle: GoogleFonts.lexend(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.primary,
+        ),
+        prefixIcon: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12.w),
+          child: Icon(icon, size: 20.sp, color: theme.colorScheme.primary),
+        ),
+        prefixIconConstraints: BoxConstraints(minWidth: 40.w, minHeight: 20.h),
         filled: true,
-        fillColor: Colors.black26,
+        fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(16.r),
           borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.r),
+          borderSide: BorderSide(
+            color: theme.colorScheme.onSurface.withOpacity(0.06),
+            width: 1,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.r),
+          borderSide: BorderSide(
+            color: theme.colorScheme.primary.withOpacity(0.06),
+            width: 1.5,
+          ),
         ),
       ),
       items: items,
@@ -283,6 +372,7 @@ class FuelPage extends GetView<AddController> {
 
   Widget _buildInputField(AddController c, ThemeData theme) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomTextField(
           controller: c.kmController,
@@ -300,7 +390,7 @@ class FuelPage extends GetView<AddController> {
                 textInputType: TextInputType.numberWithOptions(decimal: true),
               ),
             ),
-            SizedBox(width: 15.h),
+            SizedBox(width: 12.w),
             Expanded(
               child: CustomTextField(
                 controller: c.precoPorLitroController,
@@ -317,8 +407,9 @@ class FuelPage extends GetView<AddController> {
           icon: RemixIcons.price_tag_3_line,
           textInputType: TextInputType.numberWithOptions(decimal: true),
         ),
+        SizedBox(height: 4.h),
         _buildFullTankSwitch(c, theme),
-        SizedBox(height: 15.h),
+        SizedBox(height: 14.h),
         _buildDatePickerField(c, theme),
       ],
     );
@@ -328,8 +419,12 @@ class FuelPage extends GetView<AddController> {
     return Obx(
       () => Container(
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceVariant.withOpacity(0.35),
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
           borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(
+            color: theme.colorScheme.onSurface.withOpacity(0.06),
+            width: 1,
+          ),
         ),
         child: SwitchListTile(
           value: c.isFullTank.value,
@@ -337,19 +432,21 @@ class FuelPage extends GetView<AddController> {
           title: Text(
             "hp_label_full_tank".tr,
             style: GoogleFonts.lexend(
-              color: Colors.white,
+              color: theme.colorScheme.onSurface,
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,
             ),
           ),
           secondary: Icon(
             RemixIcons.gas_station_fill,
-            color: theme.colorScheme.secondary,
+            color: theme.colorScheme.primary,
             size: 20.sp,
           ),
           activeColor: theme.colorScheme.primary,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16.w),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 2.h),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.r),
+          ),
         ),
       ),
     );
@@ -365,38 +462,53 @@ class FuelPage extends GetView<AddController> {
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.h),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceVariant.withOpacity(0.35),
+            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
             borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: theme.colorScheme.onSurface.withOpacity(0.06),
+              width: 1,
+            ),
           ),
           child: Row(
             children: [
-              Icon(
-                RemixIcons.calendar_event_line,
-                size: 20.sp,
-                color: theme.colorScheme.primary,
+              Container(
+                padding: EdgeInsets.all(8.r),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Icon(
+                  RemixIcons.calendar_event_line,
+                  size: 20.sp,
+                  color: theme.colorScheme.primary,
+                ),
               ),
-              SizedBox(width: 15.w),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "hp_supply_date".tr,
-                    style: GoogleFonts.lexend(
-                      color: Colors.white54,
-                      fontSize: 10.sp,
+              SizedBox(width: 14.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "hp_supply_date".tr,
+                      style: GoogleFonts.lexend(
+                        color: theme.colorScheme.onSurface.withOpacity(0.5),
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  Text(
-                    "$dateStr às $timeStr",
-                    style: GoogleFonts.lexend(
-                      color: Colors.white,
-                      fontSize: 14.sp,
+                    SizedBox(height: 2.h),
+                    Text(
+                      "$dateStr às $timeStr",
+                      style: GoogleFonts.lexend(
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const Spacer(),
-              Icon(RemixIcons.edit_line, size: 16.sp, color: Colors.white24),
+              Icon(RemixIcons.arrow_right_s_line, size: 18.sp, color: theme.colorScheme.onSurface.withOpacity(0.3)),
             ],
           ),
         ),
@@ -404,30 +516,38 @@ class FuelPage extends GetView<AddController> {
     });
   }
 
-  Widget _buildConnectionBanner() {
+  Widget _buildConnectionBanner(ThemeData theme) {
     return Obx(() {
       final isOnline = syncService.isOnline.value;
       final queueLength = syncService.pendingQueue.length;
+      final bannerColor = isOnline ? Colors.green : Colors.orange;
 
       return Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
         decoration: BoxDecoration(
-          color: isOnline ? Colors.green.shade900 : Colors.orange.shade900,
-          borderRadius: BorderRadius.circular(12.r),
+          color: bannerColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
-            color: isOnline ? Colors.green.shade700 : Colors.orange.shade700,
+            color: bannerColor.withOpacity(0.3),
             width: 1,
           ),
         ),
         child: Row(
           children: [
-            Icon(
-              isOnline ? RemixIcons.cloud_line : RemixIcons.cloud_off_line,
-              color: isOnline ? Colors.green.shade300 : Colors.orange.shade300,
-              size: 22.sp,
+            Container(
+              padding: EdgeInsets.all(8.r),
+              decoration: BoxDecoration(
+                color: bannerColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Icon(
+                isOnline ? RemixIcons.cloud_line : RemixIcons.cloud_off_line,
+                color: bannerColor,
+                size: 20.sp,
+              ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: 14.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,7 +559,7 @@ class FuelPage extends GetView<AddController> {
                     style: GoogleFonts.lexend(
                       fontWeight: FontWeight.bold,
                       fontSize: 12.sp,
-                      color: Colors.white,
+                      color: bannerColor,
                     ),
                   ),
                   SizedBox(height: 2.h),
@@ -450,8 +570,8 @@ class FuelPage extends GetView<AddController> {
                             'count': '$queueLength',
                           }),
                     style: GoogleFonts.lexend(
-                      fontSize: 10.sp,
-                      color: Colors.white70,
+                      fontSize: 11.sp,
+                      color: theme.colorScheme.onSurface.withOpacity(0.4),
                     ),
                   ),
                 ],

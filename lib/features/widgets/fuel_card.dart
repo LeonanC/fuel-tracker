@@ -21,92 +21,97 @@ class FuelCard extends StatelessWidget {
     final fuelType = controller.tiposMap[entry.fuelTypeId]?['nome'] ?? '---';
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      child: Stack(
-        children: [
-          Dismissible(
-            key: Key(
-              entry.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 4.w),
+      child: Dismissible(
+        key: Key(entry.id ?? DateTime.now().millisecondsSinceEpoch.toString()),
+        direction: DismissDirection.endToStart,
+        onDismissed: (_) => controller.deleteFuel(entry.id!),
+        background: _buildDeleteBackground(theme),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(
+              color: theme.colorScheme.onSurface.withOpacity(0.05),
             ),
-            direction: DismissDirection.endToStart,
-            onDismissed: (_) => controller.deleteFuel(entry.id!),
-            background: _buildDeleteBackground(),
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.cardColor,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 15.r,
+                offset: Offset(0, 6.h),
               ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20.r),
-                  onTap: () => controller.navigateToEditEntry(context, entry),
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20.r),
+              onTap: () => controller.navigateToEditEntry(context, entry),
+              child: Padding(
+                padding: EdgeInsets.all(18.r),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(context, vehicle, theme),
+                    Divider(
+                      height: 28.h,
+                      thickness: 1,
+                      color: theme.colorScheme.onSurface.withOpacity(0.05),
+                    ),
+                    _rowInfo(
+                      theme,
+                      RemixIcons.map_line,
+                      station,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (entry.isFullTank == true) ...[
+                            _fullTankBadge(theme),
+                            SizedBox(width: 6.w),
+                          ],
+                          _badge(theme, fuelType),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildHeader(context, vehicle, theme),
-                        const Divider(height: 32, thickness: 0.5),
-                        _rowInfo(
-                          RemixIcons.map_line,
-                          station,
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if(entry.isFullTank == true) ... [
-                                _fullTankBadge(),
-                                SizedBox(width: 6.w),
-                              ],
-                              _badge(fuelType),
-                            ],
+                        _miniStat(
+                          theme,
+                          "hp_odometer".tr,
+                          UtilsService().formatarDistancia(
+                            entry.odometerKm.toDouble(),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _miniStat(
-                              "hp_odometer".tr,
-                              UtilsService().formatarDistancia(entry.odometerKm!.toDouble()),
-                            ),
-                            _miniStat(
-                              "hp_volume".tr,
-                              UtilsService().formatarVolume(entry.volumeLiters!),
-                            ),
-                          ],
+                        _miniStat(
+                          theme,
+                          "hp_volume".tr,
+                          UtilsService().formatarVolume(entry.volumeLiters),
                         ),
-                        const SizedBox(height: 16),
-                        _priceFooter(theme),
                       ],
                     ),
-                  ),
+                    SizedBox(height: 16.h),
+                    _priceFooter(theme),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildDeleteBackground() {
+  Widget _buildDeleteBackground(ThemeData theme) {
     return Container(
       alignment: Alignment.centerRight,
-      padding: EdgeInsets.only(right: 25),
-      margin: EdgeInsets.only(bottom: 24),
+      padding: EdgeInsets.only(right: 24.w),
       decoration: BoxDecoration(
-        color: Colors.redAccent.shade400,
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.redAccent.shade700,
+        borderRadius: BorderRadius.circular(20.r),
       ),
-      child: Icon(RemixIcons.delete_bin_line, color: Colors.white),
+      child: Icon(RemixIcons.delete_bin_line, color: Colors.white, size: 24.r),
     );
   }
 
@@ -116,62 +121,61 @@ class FuelCard extends StatelessWidget {
     ThemeData theme,
   ) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    '${vehicle?['name']}',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ],
+          child: Text(
+            '${vehicle?['name'] ?? 'Veículo'}',
+            style: GoogleFonts.lexend(
+              fontSize: 15.sp,
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            _plateWidget(
-              vehicle?['license_plate'] ?? "",
-            ),
-          ],
-        ),
+        SizedBox(width: 8.w),
+        _plateWidget(theme, vehicle?['license_plate'] ?? ""),
       ],
     );
   }
 
-  Widget _fullTankBadge(){
+  Widget _fullTankBadge(ThemeData theme) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
         color: Colors.green.withOpacity(0.15),
-        border: Border.all(color: Colors.green.withOpacity(0.5)),
-        borderRadius: BorderRadius.circular(4.r),
+        border: Border.all(color: Colors.green.withOpacity(0.4)),
+        borderRadius: BorderRadius.circular(6.r),
       ),
       child: Text(
         "hp_label_full_tank".tr,
         style: GoogleFonts.lexend(
-          fontSize: 9,
-          color: Colors.greenAccent,
+          fontSize: 9.sp,
+          color: Colors.greenAccent.shade700,
           fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
 
-  Widget _rowInfo(IconData icon, String text, Widget trailing) {
+  Widget _rowInfo(
+    ThemeData theme,
+    IconData icon,
+    String text,
+    Widget trailing,
+  ) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.blueAccent),
-        SizedBox(width: 8),
+        Icon(icon, size: 16.r, color: theme.colorScheme.primary),
+        SizedBox(width: 8.w),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(fontSize: 13),
+            style: GoogleFonts.lexend(
+              fontSize: 13.sp,
+              color: theme.colorScheme.onSurface.withOpacity(0.8),
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -180,114 +184,162 @@ class FuelCard extends StatelessWidget {
     );
   }
 
-  Widget _badge(String label){
+  Widget _badge(ThemeData theme, String label) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.blueAccent.withOpacity(0.5)),
-        borderRadius: BorderRadius.circular(4),
+        color: theme.colorScheme.primary.withOpacity(0.1),
+        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(6.r),
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 9,
-          color: Colors.blueAccent,
+        style: GoogleFonts.lexend(
+          fontSize: 9.sp,
+          color: theme.colorScheme.primary,
           fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
 
-  Widget _miniStat(String label, String value){
+  Widget _miniStat(ThemeData theme, String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey, fontSize: 10)),
-        Text(value, style: TextStyle(fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: GoogleFonts.lexend(
+            color: theme.colorScheme.onSurface.withOpacity(0.5),
+            fontSize: 10.sp,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: 2.h),
+        Text(
+          value,
+          style: GoogleFonts.lexend(
+            color: theme.colorScheme.onSurface,
+            fontSize: 13.sp,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _priceFooter(ThemeData theme){
+  Widget _priceFooter(ThemeData theme) {
     String dataFormatada = '---';
-    if(entry.entryDate != null){
-      if(entry.entryDate is DateTime){
-        dataFormatada = DateFormat('dd/MM/yyyy').format(entry.entryDate as DateTime);
-      }else if (entry.entryDate is String){
-        dataFormatada = DateFormat('dd/MM/yyyy').format(DateTime.parse(entry.entryDate as String));
+    if (entry.entryDate != null) {
+      if (entry.entryDate is DateTime) {
+        dataFormatada = DateFormat(
+          'dd/MM/yyyy',
+        ).format(entry.entryDate as DateTime);
+      } else if (entry.entryDate is String) {
+        dataFormatada = DateFormat(
+          'dd/MM/yyyy',
+        ).format(DateTime.parse(entry.entryDate as String));
       }
     }
 
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
-        color: Colors.black12,
-        borderRadius: BorderRadius.circular(12),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(
+          color: theme.colorScheme.onSurface.withOpacity(0.04),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Data", style: TextStyle(fontSize: 9, color: Colors.grey)),
-              Text(
-                dataFormatada,
-                style: GoogleFonts.lexend(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              )
-            ],
+          _footerItem(
+            theme,
+            label: "Data",
+            value: dataFormatada,
+            icon: RemixIcons.calendar_line,
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Preço/L", style: TextStyle(fontSize: 9, color: Colors.grey)),
-              Text(
-                UtilsService().formatarCurrency(entry.pricePerLiter!),
-                style: GoogleFonts.lexend(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              )
-            ],
+          _footerItem(
+            theme,
+            label: "Preço/L",
+            value: UtilsService().formatarCurrency(entry.pricePerLiter),
+            icon: RemixIcons.percent_line,
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Total pago", style: TextStyle(fontSize: 9, color: Colors.grey)),
-              Text(
-                UtilsService().formatarCurrency(entry.totalCost!),
-                style: GoogleFonts.lexend(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              )
-            ],
+          _footerItem(
+            theme,
+            label: "Total pago",
+            value: UtilsService().formatarCurrency(entry.totalCost),
+            icon: RemixIcons.money_dollar_circle_line,
           ),
         ],
       ),
     );
   }
 
-  Widget _plateWidget(String plate) {
+  Widget _footerItem(
+    ThemeData theme, {
+    required String label,
+    required String value,
+    required IconData icon,
+    bool isHighlight = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              icon,
+              size: 11.sp,
+              color: isHighlight
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurface.withOpacity(0.4),
+            ),
+            SizedBox(width: 4.w),
+            Text(
+              label,
+              style: GoogleFonts.lexend(
+                fontSize: 10.sp,
+                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 4.h),
+        Text(
+          value,
+          style: GoogleFonts.lexend(
+            fontSize: 12.sp,
+            fontWeight: FontWeight.bold,
+            color: isHighlight
+              ? theme.colorScheme.primary
+              : theme.colorScheme.onSurface.withOpacity(0.9),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _plateWidget(ThemeData theme, String plate) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(width: 1),
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(6.r),
+        border: Border.all(
+          color: theme.colorScheme.onSurface.withOpacity(0.15),
+          width: 1,
+        ),
       ),
       child: Text(
         plate,
         style: GoogleFonts.lexend(
-          color: Colors.black,
-          fontWeight: FontWeight.bold,
-          fontSize: 11,
+          color: theme.colorScheme.onSurface,
+          fontWeight: FontWeight.w800,
+          fontSize: 11.sp,
+          letterSpacing: 0.8,
         ),
       ),
     );

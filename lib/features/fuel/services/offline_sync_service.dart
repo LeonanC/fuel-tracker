@@ -17,6 +17,7 @@ class OfflineSyncService extends GetxService {
   final RxList<FuelModel> pendingQueue = <FuelModel>[].obs;
   final RxBool isOnline = true.obs;
   late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
+  VoidCallback? onReconnected;
 
   @override
   void onInit() {
@@ -29,30 +30,23 @@ class OfflineSyncService extends GetxService {
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen((
       List<ConnectivityResult> results,
     ) async {
-      final hasInternet = await _hasRealInternet(results);
-      isOnline.value = hasInternet;
-      if (hasInternet && pendingQueue.isNotEmpty) {
-        syncPendingEntries();
+      bool hasConnectionsSignal = results.any(
+        (r) => r != ConnectivityResult.none,
+      );
+      if (hasConnectionsSignal) {
+        isOnline.value = true;
+
+        if (onReconnected != null) {
+          onReconnected!();
+        }
+
+        if (pendingQueue.isNotEmpty) {
+          await syncPendingEntries();
+        }
+      } else {
+        isOnline.value = false;
       }
     });
-  }
-
-  Future<bool> _hasRealInternet([List<ConnectivityResult>? results]) async {
-    final connectivy = results ?? await _connectivity.checkConnectivity();
-    if (connectivy.contains(ConnectionState.none) || connectivy.isEmpty) {
-      return false;
-    }
-
-    try {
-      final result = await InternetAddress.lookup(
-        'google.com',
-      ).timeout(Duration(seconds: 3));
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-    } on SocketException catch (_) {
-      return false;
-    } catch (_) {
-      return false;
-    }
   }
 
   void _loadQueueFromStorage() {
@@ -71,55 +65,75 @@ class OfflineSyncService extends GetxService {
     await _box.write(_queueKey, rawData);
   }
 
-  Future<bool> saveOrQueueFuelEntry({required FuelModel entry, required Future<bool> Function(FuelModel) onlineSaveCallback}) async {
-    final bool online = await _hasRealInternet();
+  Future<bool> saveOrQueueFuelEntry({
+    required FuelModel entry,
+    required Future<bool> Function(FuelModel) onlineSaveCallback,
+  }) async {
+    final connectivityResults = await _connectivity.checkConnectivity();
+    final bool hasSignal = connectivityResults.any(
+      (r) => r != ConnectivityResult.none,
+    );
 
-    if(online){
-      try{
+    if (hasSignal) {
+      try {
         return await onlineSaveCallback(entry);
-      }catch(e){
-        if(e is SocketException || e is TimeoutException){
-          return _addToQueue(entry);
-        }
-
-        _utilsService.showToast(message: 'Erro ao salvar no servidor: $e', isError: true);
-        return false;
+      } catch (e) {
+        return _addToQueue(entry);
       }
-    }else{
+    } else {
       return _addToQueue(entry);
     }
   }
 
-  bool _addToQueue(FuelModel entry){
-    if(pendingQueue.length >= maxQueueSize){
-      _utilsService.showToast(message: "Limite de $maxQueueSize abastecimentos offline atingido. Conecte à internet para sincronizar.", isError: true);
+  bool _addToQueue(FuelModel entry) {
+    if (pendingQueue.length >= maxQueueSize) {
+      _utilsService.showToast(
+        message: "Limite de $maxQueueSize abastecimentos offline atingido.",
+        isError: true,
+      );
       return false;
     }
 
     pendingQueue.add(entry);
     _saveQueueToStorage();
-
-    _utilsService.showToast(message: "Abastecimento salvo na fila (${pendingQueue.length}/$maxQueueSize). Será enviado quando a internet voltar.");
+    _utilsService.showToast(
+      message: "Salvo localmento. Será enviado quando a internet voltar.",
+    );
     return true;
   }
 
-  Future<void> syncPendingEntries({Future<bool> Function(FuelModel)? sendApiCallback}) async {
-    if(pendingQueue.isEmpty) return;
+  Future<void> syncPendingEntries({
+    Future<bool> Function(FuelModel)? sendApiCallback,
+  }) async {
+
+    if (pendingQueue.isEmpty) return;
+    if(sendApiCallback == null) return;
+    
     List<FuelModel> itemsToSync = List.from(pendingQueue);
-    for(var entry in itemsToSync){
-      try{
-        bool success = true;
-        if(success){
+    int successCount = 0;
+
+    for (var entry in itemsToSync) {
+      try {
+        bool success = await sendApiCallback(entry);
+        if (success) {
           pendingQueue.remove(entry);
-          await _saveQueueToStorage();
+          successCount++;
+        } else {}
+      } catch (e) {
+        if (e is SocketException || e is TimeoutException) {
+          break;
         }
-      }catch(e){
         break;
       }
     }
 
-    if(pendingQueue.isEmpty){
-      _utilsService.showToast(message: "Todos os abastecimentos offline foram salvos na nuvem com sucesso.", isError: true);
+    await _saveQueueToStorage();
+
+    if (successCount > 0) {
+      _utilsService.showToast(
+        message:
+            "$successCount abastecimento(s) offline sincronizado(s) com sucesso!",
+      );
     }
   }
 }

@@ -53,7 +53,7 @@ class AppTranslations extends Translations {
       "hp_date_yesterday": "Ontem",
       "hp_no_vehicle_found": "Nenhum registro encontrado",
       "hp_general_media": "Média Geral",
-      "hp_total_fueled": "Total Abastecido",
+      "hp_average_cost": "Custo por KM",
       "hp_avg_price": "Preço Médio",
       "hp_monthly_expense": "Gasto Mensal",
       "hp_buscar_hint": "Buscar abastecimento...",

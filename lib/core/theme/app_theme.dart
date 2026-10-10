@@ -11,8 +11,11 @@ class AppTheme {
         seedColor: Color(0xFF3366FF),
         brightness: Brightness.light,
         surface: Colors.white,
-        surfaceVariant: Color(0xFFF1F5F9),
-        onSurfaceVariant: Color(0xFF334155),
+        onSurface: Color(0xFF0F172A),
+      ).copyWith(
+        primary: const Color(0xFF3366FF),
+        surfaceContainerHighest: const Color(0xFFF1F5F9),
+        onSurfaceVariant: const Color(0xFF334155),
       ),
       inputDecorationTheme: InputDecorationTheme(
         fillColor: Color(0xFFF1F5F9),
@@ -29,14 +32,16 @@ class AppTheme {
       brightness: Brightness.dark,
       scaffoldBackgroundColor: const Color(0xFF0F172A),
       colorScheme: ColorScheme.fromSeed(
-        primary: Color.fromARGB(255, 20, 130, 219),
-        onPrimary: Color.fromARGB(255, 246, 246, 247),
-        secondary: Color(0xFF3366FF),
         seedColor: Color(0xFF3366FF),
         brightness: Brightness.dark,
         surface: Color(0xFF1E293B),
-        surfaceVariant: Color(0xFF334155),
-        onSurfaceVariant: Color(0xFFE2E8F0),
+        onSurface: Colors.white,
+      ).copyWith(
+        primary: const Color.fromARGB(255,20,130,219),
+        onPrimary: const Color.fromARGB(255,246,246,247),
+        secondary: const Color(0xFF3366FF),
+        surfaceContainerHighest: const Color(0xFF334155),
+        onSurfaceVariant: const Color(0xFFE2E8F0),
       ),
       inputDecorationTheme: InputDecorationTheme(
         fillColor: Color(0xFF1E293B),

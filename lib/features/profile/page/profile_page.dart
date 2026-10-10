@@ -15,7 +15,7 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage>{
+class _ProfilePageState extends State<ProfilePage> {
   final PerfilController controller = Get.put(PerfilController());
   final notifController = Get.find<NotifController>();
 
@@ -25,10 +25,10 @@ class _ProfilePageState extends State<ProfilePage>{
     controller.loadUserProfile();
   }
 
-  void _checkAndNotifyVehicleMaintenance(){
-    if(notifController.maintenanceReminders.value){
+  void _checkAndNotifyVehicleMaintenance() {
+    if (notifController.maintenanceReminders.value) {
       final vehicleName = controller.vehicleName.value;
-      if(vehicleName.isNotEmpty && vehicleName != 'N/A'){
+      if (vehicleName.isNotEmpty && vehicleName != 'N/A') {
         notifController.showNotification(
           id: 102,
           title: 'pf_notif_maint_title'.tr,
@@ -52,7 +52,7 @@ class _ProfilePageState extends State<ProfilePage>{
           );
         }
 
-        WidgetsBinding.instance.addPostFrameCallback((_){
+        WidgetsBinding.instance.addPostFrameCallback((_) {
           _checkAndNotifyVehicleMaintenance();
         });
 
@@ -64,9 +64,7 @@ class _ProfilePageState extends State<ProfilePage>{
               pinned: true,
               elevation: 0,
               stretch: true,
-              backgroundColor:
-                  theme.appBarTheme.backgroundColor ??
-                  theme.scaffoldBackgroundColor,
+              backgroundColor: theme.scaffoldBackgroundColor,
               flexibleSpace: FlexibleSpaceBar(
                 titlePadding: EdgeInsetsDirectional.only(
                   start: 50.w,
@@ -95,17 +93,20 @@ class _ProfilePageState extends State<ProfilePage>{
                       title: "Informações Pessoais",
                       child: Column(
                         children: [
-                          _buildInfoRow("Nome", controller.userName.value),
-                          Divider(
-                            color: Colors.white.withOpacity(0.05),
-                            height: 24.h,
-                          ),
-                          _buildInfoRow("E-mail", controller.userEmail.value),
-                          Divider(
-                            color: Colors.white.withOpacity(0.05),
-                            height: 24.h,
-                          ),
                           _buildInfoRow(
+                            theme,
+                            "Nome",
+                            controller.userName.value,
+                          ),
+                          _buildDivider(theme),
+                          _buildInfoRow(
+                            theme,
+                            "E-mail",
+                            controller.userEmail.value,
+                          ),
+                          _buildDivider(theme),
+                          _buildInfoRow(
+                            theme,
                             "Telemóvel",
                             controller.userPhone.value,
                           ),
@@ -118,49 +119,46 @@ class _ProfilePageState extends State<ProfilePage>{
                       title: "Veículo Principal",
                       child: Column(
                         children: [
-                          if(controller.vehicleImage.value.isNotEmpty) ...[
+                          if (controller.vehicleImage.value.isNotEmpty) ...[
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(12.r),
+                              borderRadius: BorderRadius.circular(16.r),
                               child: Image.network(
                                 controller.vehicleImage.value,
-                                height: 140.h,
+                                height: 150.h,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const SizedBox.shrink(),
                               ),
                             ),
                             SizedBox(height: 16.h),
                           ],
-                          _buildInfoRow("Nome", controller.vehicleName.value),
-                          Divider(
-                            color: Colors.white.withOpacity(0.05),
-                            height: 24.h,
-                          ),
                           _buildInfoRow(
+                            theme,
+                            "Nome",
+                            controller.vehicleName.value,
+                          ),
+                          _buildDivider(theme),
+                          _buildInfoRow(
+                            theme,
                             "Matrícula",
                             controller.vehiclePlate.value,
                           ),
-                          Divider(
-                            color: Colors.white.withOpacity(0.05),
-                            height: 24.h,
-                          ),
+                          _buildDivider(theme),
                           _buildInfoRow(
+                            theme,
                             "Combustível",
                             controller.vehicleFuelType.value,
                           ),
-                          Divider(
-                            color: Colors.white.withOpacity(0.05),
-                            height: 24.h,
-                          ),
+                          _buildDivider(theme),
                           _buildInfoRow(
+                            theme,
                             "Capacidade de Depósito",
                             "${controller.vehicleTankCapacity.value} L",
                           ),
-                          Divider(
-                            color: Colors.white.withOpacity(0.05),
-                            height: 24.h,
-                          ),                          
+                          _buildDivider(theme),
                           _buildInfoRow(
+                            theme,
                             "Odômetro Inicial",
                             "${controller.vehicleOdometer.value} km",
                           ),
@@ -174,34 +172,30 @@ class _ProfilePageState extends State<ProfilePage>{
                       child: Column(
                         children: [
                           _buildActionTile(
+                            theme,
                             icon: RemixIcons.edit_box_line,
                             title: "Editar Perfil",
                             subtitle: "Atualizar dados pessoais e veículo",
-                            onTap: () => _showEditProfileDialog(context, controller),
-                            theme: theme,
+                            onTap: () =>
+                                _showEditProfileDialog(context, controller, theme),
                           ),
-                          Divider(
-                            color: Colors.white.withOpacity(0.05),
-                            height: 24.h,
-                          ),
+                          _buildDivider(theme),
                           _buildActionTile(
+                            theme,
                             icon: RemixIcons.lock_password_line,
                             title: "Alterar Palavra-passe",
                             subtitle: "Modificar credenciais de acesso",
-                            onTap: () => _showChangePasswordDialog(context, controller),
-                            theme: theme,
+                            onTap: () =>
+                                _showChangePasswordDialog(context, controller, theme),
                           ),
-                          Divider(
-                            color: Colors.white.withOpacity(0.05),
-                            height: 24.h,
-                          ),
+                          _buildDivider(theme),
                           _buildActionTile(
+                            theme,
                             icon: RemixIcons.logout_box_r_line,
                             title: "Terminar Sessão",
                             subtitle: "Sair da conta atual",
                             isDestructive: true,
                             onTap: () => controller.signOut(),
-                            theme: theme,
                           ),
                         ],
                       ),
@@ -236,8 +230,8 @@ class _ProfilePageState extends State<ProfilePage>{
                 ),
               ),
               child: CircleAvatar(
-                radius: 45.r,
-                backgroundColor: Color(0xFF1E1E1E),
+                radius: 48.r,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
                 backgroundImage:
                     controller.userFoto.value.isNotEmpty &&
                         controller.userFoto.value != 'Sem Imagem'
@@ -249,7 +243,7 @@ class _ProfilePageState extends State<ProfilePage>{
                     ? Icon(
                         RemixIcons.user_fill,
                         size: 45.r,
-                        color: Colors.white70,
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
                       )
                     : null,
               ),
@@ -262,12 +256,15 @@ class _ProfilePageState extends State<ProfilePage>{
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Color(0xFF121212), width: 2),
+                  border: Border.all(
+                    color: theme.scaffoldBackgroundColor,
+                    width: 2,
+                  ),
                 ),
                 child: Icon(
                   RemixIcons.camera_line,
                   size: 14.sp,
-                  color: Colors.white,
+                  color: theme.colorScheme.onPrimary,
                 ),
               ),
             ),
@@ -281,16 +278,26 @@ class _ProfilePageState extends State<ProfilePage>{
           style: GoogleFonts.lexend(
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: theme.colorScheme.onSurface,
             letterSpacing: 0.5,
           ),
         ),
         SizedBox(height: 4.h),
         Text(
           "Membro desde ${controller.memberSince.value}",
-          style: GoogleFonts.lexend(fontSize: 12.sp, color: Colors.white60),
+          style: GoogleFonts.lexend(
+            fontSize: 12.sp,
+            color: theme.colorScheme.onSurface.withOpacity(0.6),
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDivider(ThemeData theme) {
+    return Divider(
+      color: theme.colorScheme.onSurface.withOpacity(0.05),
+      height: 24.h,
     );
   }
 
@@ -301,11 +308,20 @@ class _ProfilePageState extends State<ProfilePage>{
   }) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
-        color: Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(24.r),
+        border: Border.all(
+          color: theme.colorScheme.onSurface.withOpacity(0.05),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 15.r,
+            offset: Offset(0, 5.h),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,7 +331,7 @@ class _ProfilePageState extends State<ProfilePage>{
             style: GoogleFonts.lexend(
               fontSize: 12.sp,
               fontWeight: FontWeight.w900,
-              color: theme.colorScheme.primary.withOpacity(0.9),
+              color: theme.colorScheme.primary,
               letterSpacing: 1.2,
             ),
           ),
@@ -326,32 +342,39 @@ class _ProfilePageState extends State<ProfilePage>{
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(ThemeData theme, String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: GoogleFonts.lexend(fontSize: 13.sp, color: Colors.white54),
-        ),
-        Text(
-          value,
           style: GoogleFonts.lexend(
             fontSize: 13.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: theme.colorScheme.onSurface.withOpacity(0.5),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: GoogleFonts.lexend(
+              fontSize: 13.sp,
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildActionTile({
+  Widget _buildActionTile(
+    ThemeData theme, {
     required IconData icon,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
-    required ThemeData theme,
     bool isDestructive = false,
   }) {
     final color = isDestructive ? Colors.redAccent : theme.colorScheme.primary;
@@ -360,14 +383,14 @@ class _ProfilePageState extends State<ProfilePage>{
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.r),
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 4.h),
+        padding: EdgeInsets.symmetric(vertical: 6.h),
         child: Row(
           children: [
             Container(
               padding: EdgeInsets.all(10.r),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(icon, color: color, size: 20.r),
             ),
@@ -381,7 +404,9 @@ class _ProfilePageState extends State<ProfilePage>{
                     style: GoogleFonts.lexend(
                       fontSize: 13.sp,
                       fontWeight: FontWeight.bold,
-                      color: isDestructive ? Colors.redAccent : Colors.white,
+                      color: isDestructive
+                          ? Colors.redAccent
+                          : theme.colorScheme.onSurface,
                     ),
                   ),
                   SizedBox(height: 2.h),
@@ -389,7 +414,7 @@ class _ProfilePageState extends State<ProfilePage>{
                     subtitle,
                     style: GoogleFonts.lexend(
                       fontSize: 11.sp,
-                      color: Colors.white54,
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
                     ),
                   ),
                 ],
@@ -397,7 +422,7 @@ class _ProfilePageState extends State<ProfilePage>{
             ),
             Icon(
               RemixIcons.arrow_right_s_line,
-              color: Colors.white30,
+              color: theme.colorScheme.onSurface.withOpacity(0.3),
               size: 18.sp,
             ),
           ],
@@ -406,87 +431,119 @@ class _ProfilePageState extends State<ProfilePage>{
     );
   }
 
-  void _showEditProfileDialog(BuildContext context, PerfilController controller){
-    final nameController = TextEditingController(text: controller.userName.value);
-    final phoneController = TextEditingController(text: controller.userPhone.value);
+  void _showEditProfileDialog(
+    BuildContext context,
+    PerfilController controller,
+    ThemeData theme,
+  ) {
+    final nameController = TextEditingController(
+      text: controller.userName.value,
+    );
+    final phoneController = TextEditingController(
+      text: controller.userPhone.value,
+    );
 
     Get.defaultDialog(
       title: "Editar Perfil",
-      titleStyle: GoogleFonts.lexend(fontWeight: FontWeight.bold, fontSize: 16.sp),
-      backgroundColor: Color(0xFF1E1E1E),
-      content: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8.w),
-        child: Column(
-          children: [
-            CustomTextField(
-              controller: nameController,
-              icon: RemixIcons.user_line,
-              label: "Nome",
-            ),
-            CustomTextField(
-              controller: phoneController,
-              icon: RemixIcons.phone_line,
-              label: "Telemóvel",
-              // inputFormatters: [phoneValidator],
-            ),
-          ],
-        ),
+      titleStyle: GoogleFonts.lexend(
+        fontWeight: FontWeight.bold,
+        fontSize: 16.sp,
+        color: theme.colorScheme.onSurface,
+      ),
+      backgroundColor: theme.colorScheme.surface,
+      contentPadding: EdgeInsets.all(20.r),
+      content: Column(
+        children: [
+          CustomTextField(
+            controller: nameController,
+            icon: RemixIcons.user_line,
+            label: "Nome",
+          ),
+          SizedBox(height: 12.h),
+          CustomTextField(
+            controller: phoneController,
+            icon: RemixIcons.phone_line,
+            label: "Telemóvel",
+            // inputFormatters: [phoneValidator],
+          ),
+        ],
       ),
       textConfirm: "Salvar",
       textCancel: "Cancelar",
-      confirmTextColor: Colors.white,
+      confirmTextColor: theme.colorScheme.onPrimary,
+      buttonColor: theme.colorScheme.primary,
       onConfirm: () async {
-        await controller.updateProfile(nameController.text, phoneController.text);
+        await controller.updateProfile(
+          nameController.text,
+          phoneController.text,
+        );
         Get.back();
       },
     );
   }
 
-  void _showChangePasswordDialog(BuildContext context, PerfilController controller){
+  void _showChangePasswordDialog(
+    BuildContext context,
+    PerfilController controller,
+    ThemeData theme,
+  ) {
     final passwordController = TextEditingController();
     final confirmPasswordController = TextEditingController();
     final _utilsService = UtilsService();
-    
+
     Get.defaultDialog(
       title: "Alterar Palavra-passe",
-      titleStyle: GoogleFonts.lexend(fontWeight: FontWeight.bold, fontSize: 16.sp, color: Colors.white),
-      backgroundColor: Color(0xFF1E1E1E),
-      content: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8.w),
-        child: Column(
-          children: [
-            CustomTextField(
-              controller: passwordController,
-              isSecret: true,
-              label: "Nova Palavra-passe",
-              icon: RemixIcons.lock_password_line,
-            ),
-            CustomTextField(
-              controller: confirmPasswordController,
-              isSecret: true,
-              label: "Confirmar Nova Palava-passe",
-              icon: RemixIcons.lock_password_line,
-            ),
-          ],
-        ),
+      titleStyle: GoogleFonts.lexend(
+        fontWeight: FontWeight.bold,
+        fontSize: 16.sp,
+        color: theme.colorScheme.onSurface,
+      ),
+      backgroundColor: theme.colorScheme.surface,
+      contentPadding: EdgeInsets.all(20.r),
+      content: Column(
+        children: [
+          CustomTextField(
+            controller: passwordController,
+            isSecret: true,
+            label: "Nova Palavra-passe",
+            icon: RemixIcons.lock_password_line,
+          ),
+          SizedBox(height: 12.h),
+          CustomTextField(
+            controller: confirmPasswordController,
+            isSecret: true,
+            label: "Confirmar Nova Palava-passe",
+            icon: RemixIcons.lock_password_line,
+          ),
+        ],
       ),
       textConfirm: "Atualizar",
       textCancel: "Cancelar",
-      confirmTextColor: Colors.white,
+      confirmTextColor: theme.colorScheme.onPrimary,
+      buttonColor: theme.colorScheme.primary,
       onConfirm: () async {
         final newPass = passwordController.text.trim();
         final confirmPass = confirmPasswordController.text.trim();
-        
-        if(newPass.isEmpty || confirmPass.isEmpty){
-          _utilsService.showToast(message: "Preencha todos os campos", isError: true);
+
+        if (newPass.isEmpty || confirmPass.isEmpty) {
+          _utilsService.showToast(
+            message: "Preencha todos os campos",
+            isError: true,
+          );
           return;
         }
-        if(newPass.length < 7){
-          _utilsService.showToast(message: "A palavra-passe deve ter pelo menos 7 caracteres", isError: true);
+        if (newPass.length < 7) {
+          _utilsService.showToast(
+            message: "A palavra-passe deve ter pelo menos 7 caracteres",
+            isError: true,
+          );
           return;
         }
-        if(newPass != confirmPass){
-          _utilsService.showToast(message: "As palavras-passe não coincidem", isError: true);
+        if (newPass != confirmPass) {
+          _utilsService.showToast(
+            message: "As palavras-passe não coincidem",
+            isError: true,
+          );
           return;
         }
 

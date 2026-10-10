@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fuel_tracker/core/services/utils_service.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -37,6 +39,7 @@ class AboutController extends GetxController {
           .from('app_config')
           .select('latest_version, apk_url, force_update, changelog')
           .order('created_at', ascending: false)
+          .limit(1)
           .maybeSingle();
 
       if (supabaseData != null) {
@@ -85,32 +88,92 @@ class AboutController extends GetxController {
         ? currentParts.length
         : latestParts.length;
 
-    for(int i = 0; i < maxLength; i++){
+    for (int i = 0; i < maxLength; i++) {
       int currentVersionPart = i < currentParts.length ? currentParts[i] : 0;
       int latestVersionPart = i < latestParts.length ? latestParts[i] : 0;
 
-      if(latestVersionPart > currentVersionPart) return true;
-      if(latestVersionPart < currentVersionPart) return false;
+      if (latestVersionPart > currentVersionPart) return true;
+      if (latestVersionPart < currentVersionPart) return false;
     }
 
     return false;
   }
 
-  void _showUpdateDialog(String newVersion, String url, String message){
+  void _showUpdateDialog(String newVersion, String url, String message) {
     Get.defaultDialog(
       title: "ab_update_available".tr,
       middleText: message.isNotEmpty
-        ? message
-        : "${'ab_new_version'.tr} $newVersion",
+          ? message
+          : "${'ab_new_version'.tr} $newVersion",
+      content: Column(
+        children: [
+          Text(
+            message.isNotEmpty ? message : '${'ab_new_version'.tr} $newVersion',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.lexend(fontSize: 13.sp, color: Colors.white70, height: 1.4),
+          ),
+          SizedBox(height: 16),
+          Obx(
+            () => isDownloading.value
+                ? Container(
+                    padding: EdgeInsets.all(16.r),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF1F1F1F),
+                      borderRadius: BorderRadius.circular(16.r),
+                      border: Border.all(color: Colors.white.withOpacity(0.05)),
+                    ),
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8.r),
+                          child: LinearProgressIndicator(
+                            value: downloadProgress.value,
+                            minHeight: 8.h,
+                            backgroundColor: Colors.white.withOpacity(0.05),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Theme.of(Get.context!).colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 12.h),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'A descarregar atualização...',
+                              style: GoogleFonts.lexend(
+                                fontSize: 11.sp,
+                                color: Colors.white54,
+                              ),
+                            ),
+                            Text(
+                              '${(downloadProgress.value * 100).toStringAsFixed(0)}%',
+                              style: GoogleFonts.lexend(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(
+                                  Get.context!,
+                                ).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
+                : SizedBox.shrink(),
+          ),
+        ],
+      ),
       textConfirm: 'ab_update_now'.tr,
       textCancel: 'ab_later'.tr,
       confirmTextColor: Colors.white,
       onConfirm: () async {
-        if(Platform.isAndroid && url.endsWith('.apk')){
+        if (Platform.isAndroid && url.endsWith('.apk')) {
           await _downloadAndInstallApk(url);
-        }else{
+        } else {
           final uri = Uri.parse(url);
-          if(await canLaunchUrl(uri)){
+          if (await canLaunchUrl(uri)) {
             await launchUrl(uri, mode: LaunchMode.externalApplication);
           }
           Get.back();
@@ -120,7 +183,7 @@ class AboutController extends GetxController {
   }
 
   Future<void> _downloadAndInstallApk(String url) async {
-    try{
+    try {
       isDownloading.value = true;
       downloadProgress.value = 0.0;
 
@@ -131,11 +194,11 @@ class AboutController extends GetxController {
       await dio.download(
         url,
         savePath,
-        onReceiveProgress: (received, total){
-          if(total != -1){
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
             downloadProgress.value = received / total;
           }
-        }
+        },
       );
 
       isDownloading.value = false;
@@ -143,17 +206,23 @@ class AboutController extends GetxController {
 
       final result = await OpenFilex.open(savePath);
 
-      if(result.type != ResultType.done){
-        _utilsService.showToast(message: "Erro ao abrir o instalador: ${result.message}", isError: true);
+      if (result.type != ResultType.done) {
+        _utilsService.showToast(
+          message: "Erro ao abrir o instalador: ${result.message}",
+          isError: true,
+        );
       }
-    }catch(e){
+    } catch (e) {
       isDownloading.value = false;
       Get.back();
-      _utilsService.showToast(message: "Erro no download da atualização: $e", isError: true);
+      _utilsService.showToast(
+        message: "Erro no download da atualização: $e",
+        isError: true,
+      );
     }
   }
 
-  void setChecking(bool value){
+  void setChecking(bool value) {
     isCheckingForUpdate.value = value;
   }
 }
