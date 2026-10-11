@@ -34,9 +34,7 @@ class SettingPage extends GetView<SettingsController> {
             pinned: true,
             elevation: 0,
             stretch: true,
-            backgroundColor:
-                theme.appBarTheme.backgroundColor ??
-                theme.scaffoldBackgroundColor,
+            backgroundColor: theme.scaffoldBackgroundColor,
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: EdgeInsetsDirectional.only(
                 start: 50.w,
@@ -109,8 +107,8 @@ class SettingPage extends GetView<SettingsController> {
                       icon: RemixIcons.information_line,
                       title: "st_app_version".tr,
                       subtitle: controller.appVersion.value.isEmpty
-                      ? 'st_loading'.tr
-                      : controller.appVersion.value,
+                          ? 'st_loading'.tr
+                          : controller.appVersion.value,
                       onTap: () => _showInformationDialog(theme),
                     ),
                   ),
@@ -126,7 +124,7 @@ class SettingPage extends GetView<SettingsController> {
                     theme: theme,
                     icon: RemixIcons.shield_check_line,
                     title: 'st_terms_privacy'.tr,
-                    onTap: (){},
+                    onTap: () {},
                   ),
                   SizedBox(height: 28.h),
                 ],
@@ -245,29 +243,66 @@ class SettingPage extends GetView<SettingsController> {
     );
   }
 
-  void _showInformationDialog(ThemeData theme){
+  void _showInformationDialog(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+
     Get.defaultDialog(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: colorScheme.surface,
+      radius: 24.r,
       title: "ab_title".tr,
-      titleStyle: GoogleFonts.lexend(color: Colors.white, fontWeight: FontWeight.bold),
+      titleStyle: GoogleFonts.lexend(
+        color: colorScheme.onSurface,
+        fontWeight: FontWeight.bold,
+        fontSize: 18.sp,
+      ),
+      contentPadding: EdgeInsets.fromLTRB(24.w, 12.h, 24.w, 24.h),
       content: Column(
         children: [
+          Container(
+            padding: EdgeInsets.all(16.r),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              RemixIcons.information_line,
+              size: 32.sp,
+              color: colorScheme.primary,
+            ),
+          ),
+          SizedBox(height: 16.h),
           Text(
             'st_about_desc'.tr,
             textAlign: TextAlign.center,
-            style: GoogleFonts.lexend(color: Colors.grey[400], fontSize: 12.sp),
+            style: GoogleFonts.lexend(
+              color: colorScheme.onSurface.withOpacity(0.7),
+              fontSize: 13.sp,
+              height: 1.4,
+            ),
           ),
-          Text(
-            'st_current_version'.trParams({
-              'version': controller.appVersion.value,
-            }),
-            style: GoogleFonts.lexend(color: Colors.white70, fontSize: 11.sp),
+          SizedBox(height: 16.h),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Text(
+              'st_current_version'.trParams({
+                'version': controller.appVersion.value,
+              }),
+              style: GoogleFonts.lexend(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w600,
+                fontSize: 12.sp,
+              ),
+            ),
           ),
         ],
       ),
       textConfirm: 'st_ok'.tr,
-      confirmTextColor: Colors.white,
-      buttonColor: theme.colorScheme.primary,
+      confirmTextColor: colorScheme.onPrimary,
+      buttonColor: colorScheme.primary,
       onConfirm: () => Get.back(),
     );
   }

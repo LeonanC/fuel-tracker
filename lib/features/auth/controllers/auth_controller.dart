@@ -154,10 +154,54 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<void> salvarTokenUsuario() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final user = supabase.auth.currentUser;
+
+      if (user != null) {
+        final session = supabase.auth.currentSession;
+        final token = session?.accessToken;
+
+        if (token != null) {
+          await supabase
+              .from('usuarios')
+              .update({'token': token})
+              .eq('id', user.id);
+
+          print('Token guardado com sucesso na tabela usuarios!');
+        }
+      }
+    } catch (e) {
+      print("Erro ao guardar o token do utilizador: $e");
+    }
+  }
+
+  Future<void> limparTokenAoSair() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final user = supabase.auth.currentUser;
+
+      if (user != null) {
+        await supabase
+            .from('usuarios')
+            .update({'token': null})
+            .eq('id', user.id);
+      }
+
+      print("Sessão terminada e token limpo na base de dados.");
+    } catch (e) {
+      print("Erro ao terminar sessão e limpar token: $e");
+    }
+  }
+
   Future<void> signOut() async {
     try {
       isLoading.value = true;
+      
       await _supabase.auth.signOut();
+
+      limparTokenAoSair();
     } catch (e) {
       _utilsService.showToast(message: 'Não foi possível encerrar a sessão.');
     } finally {

@@ -91,6 +91,8 @@ class SignInPage extends GetView<AuthController> {
                                   password: passwordController.text,
                                 );
 
+                                controller.salvarTokenUsuario();
+
                                 if(success){
                                   Get.offAllNamed(PagesRoutes.mainRoute);
                                 }

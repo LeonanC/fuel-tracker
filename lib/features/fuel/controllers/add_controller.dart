@@ -308,6 +308,19 @@ class AddController extends GetxController {
       debugPrint('Erro ao atualizar hodômetro do veículo: $e');
     }
   }
+  
+  Future<void> carregarVeiculosDoUtilizador() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if(userId == null) return;
+
+      final response = await _supabase.from('vehicles').select('').or('user_id.eq$userId,id.in.(SELECT vehicle_id FROM vehicle_users WHERE user_id.eq.$userId)');
+      veiculos.value = response.map((v) => VehicleModel.fromJson(v)).toList();
+
+    } catch (e) {
+      debugPrint('Erro ao carregar veículos partilhados: $e');
+    }
+  }
 
   Future<void> saveFuel(Map<String, dynamic> data) async {
     try {

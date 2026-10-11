@@ -57,8 +57,7 @@ class PerfilController extends GetxController {
                 .select(
                   'name, license_plate, tank_capacity_liters, imagem, initial_odometer, fuel_type',
                 )
-                .eq('user_id', user.id)
-                .limit(1)
+                .eq('id', vehicleId)
                 .maybeSingle();
 
             if (vehicleData != null) {
@@ -89,14 +88,13 @@ class PerfilController extends GetxController {
                   vehicleFuelType.value = 'Não especificado';
                 }
               } else {
-                vehicleName.value = 'Nenhum veículo';
-                vehiclePlate.value = 'N/A';
-                vehicleTankCapacity.value = '0';
-                vehicleImage.value = '0';
-                vehicleOdometer.value = '0';
                 vehicleFuelType.value = 'N/A';
               }
+            }else{
+              _limparDadosVeiculo();
             }
+          }else{
+            _limparDadosVeiculo();
           }
         }
       }
@@ -108,6 +106,15 @@ class PerfilController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void _limparDadosVeiculo(){
+    vehicleName.value = 'Nenhum veículo';
+    vehiclePlate.value = 'N/A';
+    vehicleTankCapacity.value = '0';
+    vehicleImage.value = '';
+    vehicleOdometer.value = '0';
+    vehicleFuelType.value = 'N/A';
   }
 
   Future<void> updateProfile(String newName, String newPhone) async {
@@ -160,6 +167,10 @@ class PerfilController extends GetxController {
 
   Future<void> signOut() async {
     try {
+      final user = supabase.auth.currentUser;
+      if(user != null){
+        await supabase.from('usuarios').update({'token': null}).eq('id', user.id);
+      }
       await supabase.auth.signOut();
       Get.offAllNamed(PagesRoutes.signInRoute);
     } catch (e) {

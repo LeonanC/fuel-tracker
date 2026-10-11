@@ -208,7 +208,9 @@ class HomeService {
     return _supabase
       .from('vehicles')
       .stream(primaryKey: ['id'])
-      .eq('user_id', userUID);
+      .map((vehicles){
+        return vehicles;
+      });
   }
 
   Future<void> updateUserVehicle(String userId, String vehicleId) async {

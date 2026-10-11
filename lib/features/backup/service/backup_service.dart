@@ -40,7 +40,7 @@ class BackupService {
             .toDouble();
       }
       double totalGastoManutencao = 0;
-      for (var f in fuels) {
+      for (var f in maintenances) {
         totalGastoManutencao += (f['custo_total'] ?? f['valor'] ?? 0)
             .toDouble();
       }
@@ -57,6 +57,11 @@ class BackupService {
       double precoMedioLitro = totalLitros > 0
           ? (totalGastoAbastecimento / totalLitros)
           : 0;
+
+      final vehiclesResponse = await _supabase
+          .from('vehicles')
+          .select('*, tipo_combustivel(nome)')
+          .eq('user_id', userId);
 
       final pdf = pw.Document();
       final primaryColor = PdfColor.fromHex('#0F172A');
@@ -141,163 +146,149 @@ class BackupService {
                   borderRadius: pw.BorderRadius.circular(8),
                   border: pw.Border.all(color: PdfColors.grey300),
                 ),
-                child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          'Titular: $userEmail',
-                          style: pw.TextStyle(color: textColor, fontSize: 10),
-                        ),
-                        pw.Text(
-                          'ID Usuário: $userId',
-                          style: pw.TextStyle(
-                            color: PdfColors.grey600,
-                            fontSize: 9,
-                          ),
-                        ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 20),
                     pw.Text(
-                      'Visão Geral de Dados',
+                      'Titular: $userEmail',
+                      style: pw.TextStyle(color: textColor, fontSize: 10),
+                    ),
+                    pw.Text(
+                      'ID Usuário: $userId',
                       style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold,
-                        color: primaryColor,
-                        fontSize: 14,
+                        color: PdfColors.grey600,
+                        fontSize: 9,
                       ),
                     ),
-                    pw.Row(
-                      children: [
-                        _buildStatCard(
-                          'Veículos',
-                          '${vehicle.length}',
-                          accentColor,
-                        ),
-                        pw.SizedBox(width: 10),
-                        _buildStatCard(
-                          'Abastecimentos',
-                          '${fuels.length}',
-                          PdfColors.green700,
-                        ),
-                        pw.SizedBox(width: 10),
-                        _buildStatCard(
-                          'Manutenções',
-                          '${maintenances.length}',
-                          PdfColors.orange800,
-                        ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 20),
-                    pw.Text(
-                      'Veículos Cadastrados',
-                      style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold,
-                        color: primaryColor,
-                        fontSize: 13,
-                      ),
-                    ),
-                    pw.SizedBox(height: 8),
-                    vehicle.isEmpty
-                        ? pw.Text(
-                            'Nenhum veículo cadastrado.',
-                            style: pw.TextStyle(fontSize: 10),
-                          )
-                        : pw.Table.fromTextArray(
-                            headers: [
-                              'Nome',
-                              'Placa',
-                              'Tanque',
-                              'Tipo de Combustível',
-                              'Odômetro',
-                            ],
-                            data: vehicle
-                                .map(
-                                  (v) => [
-                                    v['name'],
-                                    v['license_plate'] ?? '-',
-                                    '${v['tank_capacity_liters'] ?? '-'}',
-                                    v['fuel_type'] ?? '-',
-                                    '${v['initial_odometer'] ?? '-'}',
-                                  ],
-                                )
-                                .toList(),
-                            headerStyle: pw.TextStyle(
-                              fontWeight: pw.FontWeight.bold,
-                              color: PdfColors.white,
-                              fontSize: 10,
-                            ),
-                            headerDecoration: pw.BoxDecoration(
-                              color: accentColor,
-                            ),
-                            rowDecoration: pw.BoxDecoration(
-                              color: PdfColors.grey100,
-                            ),
-                            cellStyle: pw.TextStyle(fontSize: 9),
-                          ),
-                    pw.SizedBox(height: 20),
-                    pw.Text(
-                      'Resumo Financeiro e Registros',
-                      style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold,
-                        color: primaryColor,
-                        fontSize: 13,
-                      ),
-                    ),
-                    pw.SizedBox(height: 8),
-                    pw.Table.fromTextArray(
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Text(
+                'Visão Geral de Dados',
+                style: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  color: primaryColor,
+                  fontSize: 14,
+                ),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Row(
+                children: [
+                  _buildStatCard('Veículos', '${vehicle.length}', accentColor),
+                  pw.SizedBox(width: 10),
+                  _buildStatCard(
+                    'Abastecimentos',
+                    '${fuels.length}',
+                    PdfColors.green700,
+                  ),
+                  pw.SizedBox(width: 10),
+                  _buildStatCard(
+                    'Manutenções',
+                    '${maintenances.length}',
+                    PdfColors.orange800,
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              pw.Text(
+                'Veículos Cadastrados',
+                style: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  color: primaryColor,
+                  fontSize: 13,
+                ),
+              ),
+              pw.SizedBox(height: 8),
+              vehicle.isEmpty
+                  ? pw.Text(
+                      'Nenhum veículo cadastrado.',
+                      style: pw.TextStyle(fontSize: 10),
+                    )
+                  : pw.Table.fromTextArray(
                       headers: [
-                        'Categoria / Indicador',
-                        'Total de Lançamentos',
-                        'Gasto Total Estimado',
+                        'Nome',
+                        'Placa',
+                        'Tanque',
+                        'Tipo de Combustível',
+                        'Odômetro',
                       ],
-                      data: [
-                        [
-                          'Abastecimentos de Combustível',
-                          '${fuels.length}',
-                          _utilsService.formatarCurrency(
-                            totalGastoAbastecimento,
-                          ),
-                        ],
-                        [
-                          'Serviços e Manutenções',
-                          '${maintenances.length}',
-                          _utilsService.formatarCurrency(totalGastoManutencao),
-                        ],
-                        [
-                          'Média de Preço / Litro',
-                          '${_utilsService.formatarVolume(totalLitros)} abastecidos',
-                          '${_utilsService.formatarCurrency(precoMedioLitro)} / L',
-                        ],
-                        [
-                          'Total Geral de Custos',
-                          '${fuels.length + maintenances.length} registros',
-                          _utilsService.formatarCurrency(totalGastoGeral),
-                        ],
-                      ],
+                      data: vehiclesResponse.map((v) {
+                        final tipoCombustivelObj = v['tipo_combustivel'];
+                        final nomeCombustivel = tipoCombustivelObj is Map
+                        ? (tipoCombustivelObj['nome'] ?? '-')
+                        : (v['fuel_type'] ?? '-');
+
+                        return [
+                          v['name'],
+                          v['license_plate'] ?? '-',
+                          '${v['tank_capacity_liters'] ?? '-'} L',
+                          nomeCombustivel,
+                          '${v['initial_odometer'] ?? '-'} km',
+                        ];
+                      }).toList(),
                       headerStyle: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold,
                         color: PdfColors.white,
                         fontSize: 10,
                       ),
-                      headerDecoration: pw.BoxDecoration(color: primaryColor),
-                      rowDecoration: pw.BoxDecoration(color: PdfColors.grey50),
+                      headerDecoration: pw.BoxDecoration(color: accentColor),
+                      rowDecoration: pw.BoxDecoration(color: PdfColors.grey100),
                       cellStyle: pw.TextStyle(fontSize: 9),
                     ),
-                    pw.SizedBox(height: 30),
-                    pw.Divider(thickness: 0.5, color: PdfColors.grey400),
-                    pw.Center(
-                      child: pw.Text(
-                        'Este documento serve como relatório de conferência e histórico dos seus dados no Fuel Tracker.',
-                        style: pw.TextStyle(
-                          color: PdfColors.grey600,
-                          fontSize: 9,
-                        ),
-                      ),
-                    ),
+              pw.SizedBox(height: 20),
+              pw.Text(
+                'Resumo Financeiro e Registros',
+                style: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  color: primaryColor,
+                  fontSize: 13,
+                ),
+              ),
+              pw.SizedBox(height: 8),
+              pw.Table.fromTextArray(
+                headers: [
+                  'Categoria / Indicador',
+                  'Total de Lançamentos',
+                  'Gasto Total Estimado',
+                ],
+                data: [
+                  [
+                    'Abastecimentos de Combustível',
+                    '${fuels.length}',
+                    _utilsService.formatarCurrency(totalGastoAbastecimento),
                   ],
+                  [
+                    'Serviços e Manutenções',
+                    '${maintenances.length}',
+                    _utilsService.formatarCurrency(totalGastoManutencao),
+                  ],
+                  [
+                    'Média de Preço / Litro',
+                    '${_utilsService.formatarVolume(totalLitros)} abastecidos',
+                    '${_utilsService.formatarCurrency(precoMedioLitro)} / L',
+                  ],
+                  [
+                    'Total Geral de Custos',
+                    '${fuels.length + maintenances.length} registros',
+                    _utilsService.formatarCurrency(totalGastoGeral),
+                  ],
+                ],
+                headerStyle: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.white,
+                  fontSize: 10,
+                ),
+                headerDecoration: pw.BoxDecoration(color: primaryColor),
+                rowDecoration: pw.BoxDecoration(color: PdfColors.grey50),
+                cellStyle: pw.TextStyle(fontSize: 9),
+              ),
+              pw.SizedBox(height: 30),
+              pw.Divider(thickness: 0.5, color: PdfColors.grey400),
+              pw.Center(
+                child: pw.Text(
+                  'Este documento serve como relatório de conferência e histórico dos seus dados no Fuel Tracker.',
+                  style: pw.TextStyle(color: PdfColors.grey600, fontSize: 9),
                 ),
               ),
             ];
@@ -410,7 +401,7 @@ class BackupService {
         allowedExtensions: ['json'],
       );
 
-      if(result.isEmpty || result.single.path == null){
+      if (result.isEmpty || result.single.path == null) {
         return false;
       }
 
@@ -420,38 +411,40 @@ class BackupService {
       String jsonContent = await file.readAsString();
       Map<String, dynamic> backupData = jsonDecode(jsonContent);
 
-      if(!backupData.containsKey('data')){
+      if (!backupData.containsKey('data')) {
         throw Exception('Formato de arquivo de backup inválido.');
       }
 
       final data = backupData['data'];
 
       final veiculosList = data['vehicles'] ?? data['veiculos'];
-      if(veiculosList != null && (veiculosList as List).isNotEmpty){
-        final List<Map<String, dynamic>> veiculos = List<Map<String, dynamic>>.from(veiculosList);
-        for(var v in veiculos){
+      if (veiculosList != null && (veiculosList as List).isNotEmpty) {
+        final List<Map<String, dynamic>> veiculos =
+            List<Map<String, dynamic>>.from(veiculosList);
+        for (var v in veiculos) {
           v['user_id'] = userId;
         }
         await _supabase.from('vehicles').upsert(veiculos);
       }
 
-      if(data['fuelings'] != null && (data['fuelings'] as List).isNotEmpty){
-        final List<Map<String, dynamic>> abastecimentos = List<Map<String, dynamic>>.from(data['fuelings']);
-        for(var v in abastecimentos){
+      if (data['fuelings'] != null && (data['fuelings'] as List).isNotEmpty) {
+        final List<Map<String, dynamic>> abastecimentos =
+            List<Map<String, dynamic>>.from(data['fuelings']);
+        for (var v in abastecimentos) {
           v['user_id'] = userId;
         }
         await _supabase.from('fuelings').upsert(abastecimentos);
       }
 
-      if(data['maintenances'] != null && (data['maintenances'] as List).isNotEmpty){
-        final List<Map<String, dynamic>> maintenances = List<Map<String, dynamic>>.from(data['maintenances']);
-        for(var v in maintenances){
+      if (data['maintenances'] != null &&
+          (data['maintenances'] as List).isNotEmpty) {
+        final List<Map<String, dynamic>> maintenances =
+            List<Map<String, dynamic>>.from(data['maintenances']);
+        for (var v in maintenances) {
           v['user_id'] = userId;
         }
         await _supabase.from('maintenances').upsert(maintenances);
       }
-
-
 
       return true;
     } catch (e) {

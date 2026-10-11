@@ -16,21 +16,21 @@ class VehicleAddPage extends GetView<AddVehicleController> {
 
   void _handleSaveAndNotify() async {
     await controller.submit();
-    if(notifController.refuelReminders.value){
+    if (notifController.refuelReminders.value) {
       notifController.showNotification(
         id: 101,
         title: 'notif_vehicle_title'.tr,
         body: syncService.isOnline.value
-        ? 'notif_vehicle_body_online'.tr
-        : 'notif_vehicle_body_offline'.tr,
+            ? 'notif_vehicle_body_online'.tr
+            : 'notif_vehicle_body_offline'.tr,
       );
     }
 
-    if(notifController.oilChangeAlerts.value){
+    if (notifController.oilChangeAlerts.value) {
       final kmStr = controller.initialOdometerController.text;
-      if(kmStr.isNotEmpty){
+      if (kmStr.isNotEmpty) {
         final double? km = double.tryParse(kmStr);
-        if(km != null && km > 10000){
+        if (km != null && km > 10000) {
           notifController.showNotification(
             id: 103,
             title: 'notif_vehicle_title_oil'.tr,
@@ -44,24 +44,28 @@ class VehicleAddPage extends GetView<AddVehicleController> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       bottomNavigationBar: Obx(() {
         final isFull =
             syncService.pendingQueue.length >= syncService.maxQueueSize;
         final isOnline = syncService.isOnline.value;
+        final buttonColor = !isOnline
+            ? Colors.orange.shade800
+            : colorScheme.primary;
+
         return SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 12.w),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
             child: ElevatedButton.icon(
               onPressed: (controller.isLoading.value || (!isOnline && isFull))
                   ? null
                   : _handleSaveAndNotify,
               style: ElevatedButton.styleFrom(
-                backgroundColor: !isOnline
-                    ? Colors.orange.shade800
-                    : theme.colorScheme.primary,
-                foregroundColor: theme.colorScheme.secondary,
+                backgroundColor: buttonColor,
+                foregroundColor: colorScheme.onPrimary,
                 minimumSize: Size.fromHeight(52.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16.r),
@@ -73,7 +77,7 @@ class VehicleAddPage extends GetView<AddVehicleController> {
                       width: 20.w,
                       height: 20.h,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: colorScheme.onPrimary,
                         strokeWidth: 2,
                       ),
                     )
@@ -81,7 +85,8 @@ class VehicleAddPage extends GetView<AddVehicleController> {
                       !isOnline
                           ? RemixIcons.cloud_off_line
                           : RemixIcons.check_line,
-                      color: theme.colorScheme.secondary,
+                      color: colorScheme.onPrimary,
+                      size: 20.sp,
                     ),
               label: Text(
                 !isOnline
@@ -95,8 +100,8 @@ class VehicleAddPage extends GetView<AddVehicleController> {
                 style: GoogleFonts.lexend(
                   fontWeight: FontWeight.bold,
                   fontSize: 14.sp,
-                  color: Colors.white,
-                  letterSpacing: 1,
+                  color: colorScheme.onPrimary,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
@@ -111,16 +116,22 @@ class VehicleAddPage extends GetView<AddVehicleController> {
             _buildSliverAppBar(controller, theme),
             SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(16, 20, 16, 40),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionTitle("av_information".tr, theme),
                     _buildCardContainer(
-                      child: _buildInputField(controller, theme),
-                    ),                    
+                      theme,
+                      child: Column(
+                        children: [
+                          _buildInputField(controller, theme),
+                          SizedBox(height: 4.h),
+                          _buildDropdowns(controller, theme),
+                        ],
+                      ),
+                    ),
                     SizedBox(height: 24.h),
-                    _buildConnectionBanner(),
+                    _buildConnectionBanner(theme),
                   ],
                 ),
               ),
@@ -132,23 +143,24 @@ class VehicleAddPage extends GetView<AddVehicleController> {
   }
 
   Widget _buildSliverAppBar(AddVehicleController c, ThemeData theme) {
+    final colorScheme = theme.colorScheme;
     return SliverAppBar(
       expandedHeight: 60.h,
       pinned: true,
       elevation: 0,
       stretch: true,
-      backgroundColor: theme.appBarTheme.backgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       leading: IconButton(
-        icon: Icon(RemixIcons.arrow_left_line),
+        icon: Icon(RemixIcons.arrow_left_line, color: colorScheme.onSurface),
         onPressed: () => Get.back(),
       ),
       flexibleSpace: FlexibleSpaceBar(
-        titlePadding: EdgeInsetsDirectional.only(start: 50, bottom: 16),
+        titlePadding: EdgeInsetsDirectional.only(start: 50.w, bottom: 16.h),
         centerTitle: false,
         title: Text(
           c.editingEntry != null ? "av_edit_title".tr : "av_new_title".tr,
           style: GoogleFonts.lexend(
-            color: theme.colorScheme.onSurface,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.w800,
             fontSize: 18.sp,
           ),
@@ -157,34 +169,33 @@ class VehicleAddPage extends GetView<AddVehicleController> {
     );
   }
 
-  Widget _buildSectionTitle(String title, ThemeData theme) {
-    return Padding(
-      padding: EdgeInsets.only(left: 8, bottom: 12),
-      child: Text(
-        title,
-        style: GoogleFonts.lexend(
-          fontSize: 11.sp,
-          fontWeight: FontWeight.w900,
-          color: theme.colorScheme.primary.withOpacity(0.8),
-          letterSpacing: 1.5,
-        ),
-      ),
-    );
-  }
+  Widget _buildCardContainer(ThemeData theme, {required Widget child}) {
+    final colorScheme = theme.colorScheme;
 
-  Widget _buildCardContainer({required Widget child}) {
     return Container(
-      padding: EdgeInsets.all(16.h),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
-        color: Color(0xFF1E1E1E),
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24.r),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(
+          color: colorScheme.onSurface.withOpacity(0.05),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 15.r,
+            offset: Offset(0, 5.h),
+          ),
+        ],
       ),
       child: child,
     );
   }
 
   Widget _buildDropdowns(AddVehicleController c, ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+
     return Obx(
       () => _customDropdown(
         value: c.selectedTipos.value,
@@ -195,7 +206,13 @@ class VehicleAddPage extends GetView<AddVehicleController> {
             .map(
               (v) => DropdownMenuItem(
                 value: '${v.id}',
-                child: Text('${v.name}'),
+                child: Text(
+                  '${v.name}',
+                  style: GoogleFonts.lexend(
+                    fontSize: 13.sp,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
               ),
             )
             .toList(),
@@ -214,16 +231,57 @@ class VehicleAddPage extends GetView<AddVehicleController> {
     required Function(String?) onChanged,
     required ThemeData theme,
   }) {
+    final colorScheme = theme.colorScheme;
+
     return DropdownButtonFormField<String>(
       value: value,
+      isExpanded: true,
+      dropdownColor: colorScheme.surface,
+      icon: Icon(
+        RemixIcons.arrow_down_s_line,
+        size: 18.sp,
+        color: colorScheme.onSurface.withOpacity(0.5),
+      ),
+      style: GoogleFonts.lexend(
+        fontSize: 13.sp,
+        color: colorScheme.onSurface,
+        fontWeight: FontWeight.w500,
+      ),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: theme.colorScheme.secondary),
+        labelStyle: GoogleFonts.lexend(
+          fontSize: 12.sp,
+          color: colorScheme.onSurface.withOpacity(0.5),
+        ),
+        floatingLabelStyle: GoogleFonts.lexend(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.bold,
+          color: colorScheme.primary,
+        ),
+        prefixIcon: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12.w),
+          child: Icon(icon, size: 20.sp, color: colorScheme.primary),
+        ),
+        prefixIconConstraints: BoxConstraints(minWidth: 40.w, minHeight: 20.h),
         filled: true,
-        fillColor: Colors.black26,
+        fillColor:  colorScheme.surfaceContainerHighest.withOpacity(0.4),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(16.r),
           borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.r),
+          borderSide: BorderSide(
+            color: colorScheme.onSurface.withOpacity(0.06),
+            width: 1,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.r),
+          borderSide: BorderSide(
+            color: colorScheme.primary.withOpacity(0.06),
+            width: 1.5,
+          ),
         ),
       ),
       items: items,
@@ -270,12 +328,11 @@ class VehicleAddPage extends GetView<AddVehicleController> {
           label: "av_image_label".tr,
           icon: RemixIcons.image_line,
         ),
-        _buildDropdowns(controller, theme),
       ],
     );
   }
 
-  Widget _buildConnectionBanner() {
+  Widget _buildConnectionBanner(ThemeData theme) {
     return Obx(() {
       final isOnline = syncService.isOnline.value;
       final queueLength = syncService.pendingQueue.length;
